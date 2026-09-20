@@ -19,6 +19,15 @@ const USER_COLUMNS = `
   updated_at
 `;
 
+const EMAIL_VERIFICATION_TOKEN_COLUMNS = `
+bin_to_uuid(id) AS id,
+bin_to_uuid(user_id) AS user_id,
+token_hash,
+expires_at,
+used_at,
+created_at
+`;
+
 export class AuthRepository {
   async createUser(
     params: CreateUserParams,
@@ -84,21 +93,37 @@ export class AuthRepository {
 
   createVerificationToken = async (
     params: CreateVerificationTokenParams,
-    connection: PoolConnection,
+    connection: Pool | PoolConnection = pool,
   ): Promise<void> => {
     const { id, user_id, token_hash, expires_at } = params;
 
     await connection.execute<ResultSetHeader>(
       `
-        INSERT INTO email_verification_tokens (
-          id,
-          user_id,
-          token_hash,
-          expires_at
-        )
-        VALUES (uuid_to_bin(?), uuid_to_bin(?), ?, ?)
-      `,
+    INSERT INTO email_verification_tokens (
+      id,
+      user_id,
+      token_hash,
+      expires_at
+    )
+    VALUES (UUID_TO_BIN(?), UUID_TO_BIN(?), ?, ?)
+    AS new
+    ON DUPLICATE KEY UPDATE
+      id = new.id,
+      token_hash = new.token_hash,
+      expires_at = new.expires_at
+  `,
       [id, user_id, token_hash, expires_at],
     );
+  };
+
+  getVerificationTokenByUserId = async (
+    userId: string,
+  ): Promise<EmailVerificationToken | null> => {
+    const [rows] = await pool.execute<EmailVerificationToken[]>(
+      `SELECT ${EMAIL_VERIFICATION_TOKEN_COLUMNS} FROM email_verification_tokens WHERE user_id = uuid_to_bin(?)`,
+      [userId],
+    );
+
+    return rows[0] ?? null;
   };
 }

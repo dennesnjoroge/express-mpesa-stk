@@ -1,6 +1,5 @@
-import { ApiError } from "../../core/errors/api-error";
+import { ApiError } from "../../core/errors/api-error.js";
 import { AuthRepository } from "./auth.repository.js";
-import { SubscriptionRepository } from "../subscriptions/subscription.repository.js";
 import { pool, requireEnv } from "../../core/config/db.js";
 import argon2 from "argon2";
 import { randomUUID } from "node:crypto";
@@ -94,8 +93,55 @@ export class AuthService {
     const existingUser = await authRepository.getByEmailAddress(emailAddress);
 
     if (!existingUser) {
-      throw ApiError.badRequest(
-        "User with that email does not exist in our system.",
+      throw ApiError.badRequest("Invalid email address or password.");
+    }
+
+    if (existingUser.status === "PENDING_VERIFICATION") {
+      // check for existing verification token(email) by user id
+      const userVerificationToken =
+        await authRepository.getVerificationTokenByUserId(existingUser.id);
+
+      const expiresAt = userVerificationToken?.expires_at;
+
+      if (expiresAt && new Date(expiresAt).getTime() >= Date.now()) {
+        // generate and send new verification token/link
+
+        throw ApiError.unauthorized(
+          "Email not verified. Please check your inbox for the verification link.",
+        );
+      }
+
+      // Token is missing or expired.
+      // Generate a new verification token and send the verification email here.
+      const verificationTokenId = randomUUID();
+
+      const verificationToken = crypto.randomBytes(32).toString("base64url");
+      const verificationTokenHash = crypto
+        .createHash("sha256")
+        .update(verificationToken)
+        .digest("base64url");
+
+      const verificationTokenExpiresAt = new Date(Date.now() + 30 * 60 * 1000);
+
+      await authRepository.createVerificationToken({
+        id: verificationTokenId,
+        user_id: existingUser.id,
+        token_hash: verificationTokenHash,
+        expires_at: verificationTokenExpiresAt,
+      });
+      const verificationLink = createVerificationLink({
+        token: verificationToken,
+        ref: verificationTokenId,
+      });
+
+      mailService.sendVerificationEmail({
+        to: emailAddress,
+        firstName: existingUser.first_name,
+        verificationLink,
+      });
+
+      throw ApiError.unauthorized(
+        "Email not verified. A new verification link has been sent to your inbox.",
       );
     }
 
@@ -106,9 +152,7 @@ export class AuthService {
     );
 
     if (!isPasswordValid) {
-      throw ApiError.unauthorized(
-        "Incorrect password. Try resetting your password.",
-      );
+      throw ApiError.unauthorized("Invalid email address or password.");
     }
 
     // generate access token
