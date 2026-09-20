@@ -39,3 +39,16 @@ export interface CreateVerificationTokenParams {
   token_hash: string;
   expires_at: Date;
 }
+
+export interface LoginParams {
+  emailAddress: string;
+  password: string;
+}
+
+export interface RegisterParams {
+  firstName: string;
+  lastName: string;
+  emailAddress: string;
+  phoneNumber: string;
+  password: string;
+}

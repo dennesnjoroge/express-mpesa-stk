@@ -56,9 +56,18 @@ export class AuthRepository {
     const [rows] = await connection.execute<User[]>(
       `SELECT ${USER_COLUMNS}
        FROM users
-       WHERE id = uud_to_bin(?)
+       WHERE id = uuid_to_bin(?)
        LIMIT 1`,
       [id],
+    );
+
+    return rows[0] ?? null;
+  }
+
+  async getByUserId(userId: string): Promise<User | null> {
+    const [rows] = await pool.execute<User[]>(
+      `SELECT ${USER_COLUMNS} FROM users WHERE id = uuid_to_bin(?) LIMIT 1`,
+      [userId],
     );
 
     return rows[0] ?? null;
