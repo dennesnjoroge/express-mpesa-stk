@@ -59,6 +59,7 @@ export interface RequestIds {
 }
 
 export interface StkPushParams {
+  accountReference: string;
   amount: number;
   phoneNumber: string;
 }

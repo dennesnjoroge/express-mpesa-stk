@@ -1,9 +1,14 @@
-import { ResultSetHeader, PoolConnection, Pool } from "mysql2/promise";
+import type { ResultSetHeader, PoolConnection, Pool } from "mysql2/promise";
 import { pool } from "../../core/config/db.js";
-import { User, CreateUserParams } from "./types.js";
+import type {
+  User,
+  CreateUserParams,
+  EmailVerificationToken,
+  CreateVerificationTokenParams,
+} from "./types.js";
 
 const USER_COLUMNS = `
-  id,
+  bin_to_uuid(id) AS id,
   first_name,
   last_name,
   email_address,
@@ -58,4 +63,33 @@ export class AuthRepository {
 
     return rows[0] ?? null;
   }
+
+  async getByEmailAddress(emailAddress: string): Promise<User | null> {
+    const [rows] = await pool.execute<User[]>(
+      `SELECT ${USER_COLUMNS} FROM users WHERE email_address = ? LIMIT 1`,
+      [emailAddress],
+    );
+
+    return rows[0] ?? null;
+  }
+
+  createVerificationToken = async (
+    params: CreateVerificationTokenParams,
+    connection: PoolConnection,
+  ): Promise<void> => {
+    const { id, user_id, token_hash, expires_at } = params;
+
+    await connection.execute<ResultSetHeader>(
+      `
+        INSERT INTO email_verification_tokens (
+          id,
+          user_id,
+          token_hash,
+          expires_at
+        )
+        VALUES (uuid_to_bin(?), uuid_to_bin(?), ?, ?)
+      `,
+      [id, user_id, token_hash, expires_at],
+    );
+  };
 }

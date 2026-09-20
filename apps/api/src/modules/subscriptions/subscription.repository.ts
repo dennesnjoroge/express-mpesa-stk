@@ -1,16 +1,17 @@
-import { PoolConnection } from "mysql2/promise";
-import { Subscription, CreateSubscriptionRecord } from "./types.js";
+import type { PoolConnection, Pool } from "mysql2/promise";
+import type { Subscription, CreateSubscriptionRecord } from "./types.js";
+import { pool } from "../../core/config/db.js";
 
 const subscription_columns = `
-  id,
-  user_id,
+  bin_to_uuid(id) AS id,
+  bin_to_uuid(user_id) AS user_id,
   plan_id,
   start_at,
   expires_at,
   status,
   created_at,
   updated_at,
-  active_user_id
+  bin_to_uuid(active_user_id) AS active_user_id 
 `;
 
 export class SubscriptionRepository {
@@ -26,7 +27,7 @@ export class SubscriptionRepository {
 
   async getCurrentSubscriptionByUserId(
     userId: string,
-    connection: PoolConnection,
+    connection: Pool | PoolConnection = pool,
   ): Promise<Subscription | null> {
     const [rows] = await connection.execute<Subscription[]>(
       `SELECT ${subscription_columns}
@@ -49,7 +50,7 @@ export class SubscriptionRepository {
     const { subscription_id, user_id, plan_id } = params;
 
     await connection.execute(
-      `INSERT into subscriptions (subscription_id, user_id, plan_id) VALUES (uuid_to_bin(?), uuid_to_bin(?), ?)`,
+      `INSERT into subscriptions (id, user_id, plan_id) VALUES (uuid_to_bin(?), uuid_to_bin(?), ?)`,
       [subscription_id, user_id, plan_id],
     );
   }

@@ -1,4 +1,4 @@
-import { PoolConnection } from "mysql2/promise";
+import type { PoolConnection } from "mysql2/promise";
 
 interface CreatePaymentRecordParams {
   payment_id: string;
@@ -22,7 +22,7 @@ export class PaymentRepository {
 
     await connection.execute(
       `INSERT INTO payments (payment_id, subscription_id, amount, method) VALUES (uuid_to_bin(?), uuid_to_bin(?), amount, method)`,
-      [payment_id, subscription_id, amount, method],
+      [payment_id, subscription_id, Number(amount), method],
     );
   }
 

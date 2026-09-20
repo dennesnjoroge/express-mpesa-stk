@@ -14,8 +14,8 @@ export const getAccessToken = async () => {
   try {
     const MPESA_CONSUMER_KEY = requireEnv("MPESA_CONSUMER_KEY");
     const MPESA_CONSUMER_SECRET = requireEnv("MPESA_CONSUMER_SECRET");
-    //const DARAJA_API_URL = requireEnv("DARAJA_API_URL");
-    const daraja_api_url = process.env.NODE_ENV === "production" ? "" : "";
+    const daraja_api_url = requireEnv("DARAJA_API_URL");
+    //const daraja_api_url = process.env.NODE_ENV === "production" ? "" : "";
 
     const auth = Buffer.from(
       `${MPESA_CONSUMER_KEY}:${MPESA_CONSUMER_SECRET}`,

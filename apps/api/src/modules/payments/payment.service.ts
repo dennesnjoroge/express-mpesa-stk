@@ -1,26 +1,44 @@
+import { randomUUID } from "node:crypto";
 import { stkPush } from "./stk-push.js";
 import { pool } from "../../core/config/db.js";
-import type { RequestIds, PaymentId } from "./types.js";
+import type { RequestIds } from "./types.js";
 import { ApiError } from "../../core/errors/api-error.js";
 import { PaymentRepository } from "./payment.repository.js";
 import { AuthRepository } from "../auth/auth.repository.js";
 import { SubscriptionRepository } from "../subscriptions/subscription.repository.js";
-import { StkPushParams } from "./payment.schema.js";
+import { PlansRepository } from "../plans/plans.repository.js";
+import type { StkPushParams } from "./payment.schema.js";
 
 const paymentRepository = new PaymentRepository();
 const authRepository = new AuthRepository();
 const subscriptionRepository = new SubscriptionRepository();
+const plansRepository = new PlansRepository();
 
 export class PaymentService {
   async stkPush(params: StkPushParams): Promise<RequestIds> {
-    const { firstName, lastName, emailAddress, stkPushPhoneNumber } = params;
+    const { firstName, lastName, emailAddress, stkPushPhoneNumber, planId } =
+      params;
 
-    const amount = 100;
-    const paymentId = crypto.randomUUID();
-    const subscriptionId = crypto.randomUUID();
-    let planId = 1;
+    const paymentId = randomUUID();
+    const subscriptionId = randomUUID();
 
-    const userId = crypto.randomUUID();
+    // get user id from session
+    const userId = randomUUID();
+
+    // get plan details
+    const plan = await plansRepository.getById(planId);
+
+    if (!plan) {
+      throw ApiError.badRequest("Plan not found");
+    }
+
+    const user = await authRepository.getByEmailAddress(emailAddress);
+
+    if (user) {
+      throw ApiError.badRequest(
+        `User with email ${emailAddress} already exists in our system.`,
+      );
+    }
 
     // --------------------------------
     // 1. Create subscription + payment
@@ -30,17 +48,6 @@ export class PaymentService {
 
     try {
       await connection.beginTransaction();
-
-      // create a pending user
-      await authRepository.createUser(
-        {
-          id: userId,
-          first_name: firstName,
-          last_name: lastName,
-          email_address: emailAddress,
-        },
-        connection,
-      );
 
       // expire expired subscription
       await subscriptionRepository.expireExpiredSubscriptionByUserId(
@@ -68,11 +75,13 @@ export class PaymentService {
         connection,
       );
 
+      console.log(plan);
+
       await paymentRepository.createPaymentRecord(
         {
           payment_id: paymentId,
           subscription_id: subscriptionId,
-          amount,
+          amount: plan.amount,
           method: "m-pesa",
         },
         connection,
@@ -91,7 +100,11 @@ export class PaymentService {
     // --------------------------------
 
     try {
-      const result = await stkPush({ amount, phoneNumber: stkPushPhoneNumber });
+      const result = await stkPush({
+        accountReference: emailAddress,
+        amount: plan.amount,
+        phoneNumber: stkPushPhoneNumber,
+      });
 
       const CheckoutRequestID = result.CheckoutRequestID;
       const MerchantRequestID = result.MerchantRequestID;

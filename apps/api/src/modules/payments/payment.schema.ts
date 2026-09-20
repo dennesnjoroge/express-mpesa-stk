@@ -5,6 +5,7 @@ export const stkPushSchema = z.object({
   lastName: z.string().trim().min(2).max(50),
   emailAddress: z.string().trim().email().toLowerCase(),
   stkPushPhoneNumber: z.string().trim().min(10).max(15),
+  planId: z.number(),
 });
 
 export type StkPushParams = z.infer<typeof stkPushSchema>;
