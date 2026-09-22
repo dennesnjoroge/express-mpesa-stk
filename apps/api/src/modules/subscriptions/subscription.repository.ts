@@ -57,11 +57,11 @@ export class SubscriptionRepository {
     params: CreateSubscriptionRecord,
     connection: PoolConnection,
   ): Promise<void> {
-    const { subscription_id, user_id, plan_id } = params;
+    const { id, user_id, plan_id } = params;
 
     await connection.execute(
       `INSERT into subscriptions (id, user_id, plan_id) VALUES (?, uuid_to_bin(?), ?)`,
-      [subscription_id, user_id, plan_id],
+      [id, user_id, plan_id],
     );
   }
 
@@ -87,21 +87,40 @@ export class SubscriptionRepository {
     return rows[0] ?? null;
   }
 
+  async getSubcriptionForCancellation(
+    subscriptionId: string,
+    userId: string,
+  ): Promise<Subscription | null> {
+    const [rows] = await pool.execute<Subscription[]>(
+      `SELECT ${subscription_columns}
+         FROM subscriptions
+         WHERE user_id = uuid_to_bin(?)
+           AND id = ?
+           AND status = 'active'
+           AND start_at <= UTC_TIMESTAMP()
+           AND expires_at > UTC_TIMESTAMP()
+         LIMIT 1`,
+      [userId, subscriptionId],
+    );
+
+    return rows[0] ?? null;
+  }
+
   async markSubscriptionAsSuccessful(
     params: MarkSubscriptionAsSuccessfulParams,
     connection: PoolConnection,
   ): Promise<void> {
-    const { subscription_id, start_at, expires_at } = params;
+    const { id, start_at, expires_at } = params;
 
     await connection.execute(
       `UPDATE subscriptions SET status = 'active', start_at = ?, expires_at = ? WHERE id = ?`,
-      [start_at, expires_at, subscription_id],
+      [start_at, expires_at, id],
     );
   }
 
   async markSubscriptionAsCancelled(subscriptionId: string): Promise<void> {
     await pool.execute(
-      `UPDATE TABLE subscriptions SET status = 'cancelled' WHERE id = ?`,
+      `UPDATE subscriptions SET status = 'cancelled' WHERE id = ? AND status = 'active'`,
       [subscriptionId],
     );
   }

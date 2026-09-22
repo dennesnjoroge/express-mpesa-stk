@@ -24,3 +24,33 @@ export const getActiveSubscription = async (
     next(error);
   }
 };
+
+export const cancelSubscription = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const subscriptionId = req.body?.subscriptionId;
+
+    if (!subscriptionId) {
+      throw ApiError.badRequest(
+        "Subscription id is required for this operation.",
+      );
+    }
+
+    const userId = req.user?.id;
+
+    if (!userId) {
+      throw ApiError.unauthorized();
+    }
+
+    await subscriptionService.cancelSubscription(subscriptionId, userId);
+
+    return res.status(200).json({
+      message: "Subscription has been cancelled.",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
