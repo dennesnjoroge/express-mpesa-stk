@@ -5,29 +5,6 @@ import { ApiError } from "../../core/errors/api-error.js";
 
 const authService = new AuthService();
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const kenyanPhoneRegex = /^(?:07\d{8}|011\d{7})$/;
-
-export const normalizeKenyanPhone = (phone: string): string => {
-  const normalized = phone.trim().replace(/\s+/g, "");
-
-  if (/^07\d{8}$/.test(normalized)) {
-    return `254${normalized.slice(1)}`;
-  }
-
-  if (/^011\d{7}$/.test(normalized)) {
-    return `254${normalized.slice(1)}`;
-  }
-
-  if (/^2547\d{8}$/.test(normalized)) {
-    return normalized;
-  }
-
-  if (/^25411\d{7}$/.test(normalized)) {
-    return normalized;
-  }
-
-  throw new Error("Invalid phone number");
-};
 
 export const register = async (
   req: Request,
@@ -37,7 +14,7 @@ export const register = async (
   try {
     const params: RegisterParams = req.body;
 
-    const { firstName, lastName, emailAddress, phoneNumber, password } = params;
+    const { firstName, lastName, emailAddress, password } = params;
 
     if (!firstName) {
       throw ApiError.badRequest("First name is required.");
@@ -55,16 +32,6 @@ export const register = async (
       throw ApiError.badRequest("Invalid email address.");
     }
 
-    if (!phoneNumber) {
-      throw ApiError.badRequest("Phone number is required.");
-    }
-
-    if (!kenyanPhoneRegex.test(phoneNumber)) {
-      throw ApiError.badRequest(
-        "Invalid phone number. Use the 07... or 011... format.",
-      );
-    }
-
     if (!password) {
       throw ApiError.badRequest("Password is required.");
     }
@@ -73,7 +40,6 @@ export const register = async (
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       emailAddress: emailAddress.trim().toLowerCase(),
-      phoneNumber: normalizeKenyanPhone(phoneNumber),
       password,
     });
 
