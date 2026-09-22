@@ -7,7 +7,7 @@ import type {
 import { pool } from "../../core/config/db.js";
 
 const subscription_columns = `
-  bin_to_uuid(id) AS id,
+  id,
   bin_to_uuid(user_id) AS user_id,
   plan_id,
   start_at,
@@ -70,7 +70,7 @@ export class SubscriptionRepository {
     connection: PoolConnection,
   ): Promise<void> {
     await connection.execute(
-      `UPDATE subscriptions SET status = 'failed' WHERE id = uuid_to_bin(?)`,
+      `UPDATE subscriptions SET status = 'failed' WHERE id = ?`,
       [subscriptionId],
     );
   }
@@ -80,7 +80,7 @@ export class SubscriptionRepository {
     connection: Pool | PoolConnection = pool,
   ): Promise<Subscription | null> {
     const [rows] = await connection.execute<Subscription[]>(
-      `SELECT ${subscription_columns} FROM subscriptions WHERE id = uuid_to_bin(?) FOR UPDATE`,
+      `SELECT ${subscription_columns} FROM subscriptions WHERE id = ? FOR UPDATE`,
       [subscriptionId],
     );
 
@@ -94,8 +94,15 @@ export class SubscriptionRepository {
     const { subscription_id, start_at, expires_at } = params;
 
     await connection.execute(
-      `UPDATE subscriptions SET status = 'active', start_at = ?, expires_at = ? WHERE id = uuid_to_bin(?)`,
+      `UPDATE subscriptions SET status = 'active', start_at = ?, expires_at = ? WHERE id = ?`,
       [start_at, expires_at, subscription_id],
+    );
+  }
+
+  async markSubscriptionAsCancelled(subscriptionId: string): Promise<void> {
+    await pool.execute(
+      `UPDATE TABLE subscriptions SET status = 'cancelled' WHERE id = ?`,
+      [subscriptionId],
     );
   }
 }
