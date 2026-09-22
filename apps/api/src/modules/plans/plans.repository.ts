@@ -18,4 +18,12 @@ export class PlansRepository {
 
     return rows[0] ?? null;
   }
+
+  async getAll() {
+    const [rows] = await pool.execute("SELECT * FROM plans");
+
+    return rows;
+  }
 }
+
+export const plansRepository = new PlansRepository();
