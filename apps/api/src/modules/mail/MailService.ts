@@ -15,6 +15,31 @@ export interface SendVerificationEmailParams {
   verificationLink: string;
 }
 
+interface SendSubscriptionSuccessful {
+  email: string;
+  lastName: string;
+  subscriptionId: string;
+  planName: string;
+  expiresAt: Date;
+  amount: number;
+}
+
+interface SendSubscriptionCancelledEmail {
+  email: string;
+  lastName: string;
+  subscriptionId: string;
+  planName: string;
+  expiresAt: Date;
+}
+
+interface SendPaymentFailedEmail {
+  lastName: string;
+  email: string;
+  paymentId: string;
+  planName: string;
+  amount: number;
+}
+
 export class MailService {
   sendVerificationEmail = async ({
     to,
@@ -41,4 +66,132 @@ export class MailService {
 
     return data.id;
   };
+
+  async sendSubscriptionSuccessfulEmail(params: SendSubscriptionSuccessful) {
+    const { email, lastName, subscriptionId, planName, expiresAt, amount } =
+      params;
+    const from =
+      process.env.MAIL_FROM ?? "Loft Technologies <noreply@mail.loft.co.ke>";
+
+    const { data, error } = await resend.emails.send({
+      from,
+      to: email,
+      subject: "Subscription successful",
+      html: `
+    <p>Hello ${lastName},</p>
+
+    <p>
+      Your ${planName} subscription has been successfully confirmed.
+    </p>
+
+    <p>
+      Your subscription will expire on ${expiresAt}.
+      After that date, your access will end.
+    </p>
+
+    <p>
+      Subscription: ${subscriptionId}
+    </p>
+
+    <p>Amount: KES ${amount}</p>
+
+    <p>
+      This is an automated email. Do not reply.
+    </p>
+  `,
+    });
+
+    if (error) {
+      throw new Error(
+        `Failed to send subscription confirmation email: ${error.message}`,
+      );
+    }
+
+    if (!data?.id) {
+      throw new Error("Resend did not return an email ID");
+    }
+
+    return data.id;
+  }
+
+  async sendPaymentFailedEmail(params: SendPaymentFailedEmail) {
+    const { lastName, email, paymentId, planName, amount } = params;
+    const from =
+      process.env.MAIL_FROM ?? "Loft Technologies <noreply@mail.loft.co.ke>";
+
+    const { data, error } = await resend.emails.send({
+      from,
+      to: email,
+      subject: "Payment unsuccessful",
+      html: `
+      <p>Hello ${lastName},</p>
+      <p>We couldn't complete the payment for your ${planName} subscription.</p>
+      <p>Amount: KES ${amount}</p>
+      <p>
+        Payment reference: ${paymentId}
+      </p>
+      <p>
+      No subscription was activated from this payment.
+      </p>
+      <p>
+      Please try again if you would like to continue.
+      </p>
+      <p>
+      This is an automated email. Do not reply.
+      </p>
+    `,
+    });
+
+    if (error) {
+      throw new Error(
+        `Failed to send subscription confirmation email: ${error.message}`,
+      );
+    }
+
+    if (!data?.id) {
+      throw new Error("Resend did not return an email ID");
+    }
+
+    return data.id;
+  }
+
+  async sendSubscriptionCancelledEmail(params: SendSubscriptionCancelledEmail) {
+    const { lastName, email, subscriptionId, planName, expiresAt } = params;
+    const from =
+      process.env.MAIL_FROM ?? "Loft Technologies <noreply@mail.loft.co.ke>";
+
+    const { data, error } = await resend.emails.send({
+      from,
+      to: email,
+      subject: "Subscription cancelled",
+      html: `
+      <p>Hello ${lastName},</p>
+      <p>Your ${planName} subscription has been cancelled.</p>
+      <p>Your subscription remains active until ${expiresAt}. After that date, your access will end.</p>
+      <p>
+        Subscription: ${subscriptionId}
+      </p>
+      <p>
+      If you cancelled this by mistake, you can purchase a new subscription from your account.
+      </p>
+      <p>
+      This is an automated email. Do not reply.
+      </p>
+    `,
+    });
+
+    if (error) {
+      throw new Error(
+        `Failed to send subscription confirmation email: ${error.message}`,
+      );
+    }
+
+    if (!data?.id) {
+      throw new Error("Resend did not return an email ID");
+    }
+
+    return data.id;
+  }
 }
+
+export const mailService = new MailService();
