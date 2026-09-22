@@ -18,8 +18,8 @@ export class PaymentService {
     const { phoneNumber, planId } = params;
 
     const paymentId = randomUUID();
-    const subscriptionId = randomUUID();
-    const newSubscriptionId = generateSubscriptionId();
+    const oldSubscriptionId = randomUUID();
+    const subscriptionId = generateSubscriptionId();
 
     // get plan details
     const plan = await plansRepository.getById(planId);
@@ -89,7 +89,7 @@ export class PaymentService {
 
     try {
       const result = await stkPush({
-        accountReference: newSubscriptionId,
+        accountReference: subscriptionId,
         amount: plan.amount,
         phoneNumber,
       });
