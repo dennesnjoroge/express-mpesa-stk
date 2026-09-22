@@ -56,7 +56,7 @@ export class PaymentService {
 
       await subscriptionRepository.createSubscriptionRecord(
         {
-          subscription_id: subscriptionId,
+          id: subscriptionId,
           user_id: userId,
           plan_id: planId,
         },
