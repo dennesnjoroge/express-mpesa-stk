@@ -16,7 +16,7 @@ interface UpdatePaymentRequestId {
 }
 
 const paymentColumns = `payment_id,
-  bin_to_uuid(subscription_id) AS subscription_id,
+  subscription_id,
   amount,
   method,
   status,
@@ -34,7 +34,7 @@ export class PaymentRepository {
     const { payment_id, subscription_id, amount, method } = params;
 
     await connection.execute(
-      `INSERT INTO payments (payment_id, subscription_id, amount, method) VALUES (uuid_to_bin(?), uuid_to_bin(?), amount, method)`,
+      `INSERT INTO payments (payment_id, subscription_id, amount, method) VALUES (uuid_to_bin(?), ?, amount, method)`,
       [payment_id, subscription_id, Number(amount), method],
     );
   }

@@ -60,7 +60,7 @@ export class SubscriptionRepository {
     const { subscription_id, user_id, plan_id } = params;
 
     await connection.execute(
-      `INSERT into subscriptions (id, user_id, plan_id) VALUES (uuid_to_bin(?), uuid_to_bin(?), ?)`,
+      `INSERT into subscriptions (id, user_id, plan_id) VALUES (?, uuid_to_bin(?), ?)`,
       [subscription_id, user_id, plan_id],
     );
   }
