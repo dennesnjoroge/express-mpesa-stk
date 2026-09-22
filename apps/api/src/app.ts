@@ -1,11 +1,14 @@
 import express, { type Express } from "express";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 import { router } from "./routes.js";
+import { corsOptions } from "./core/middlewares/cors.js";
 
 export const app: Express = express();
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(cors(corsOptions));
 
 app.use("/v1", router);
 
