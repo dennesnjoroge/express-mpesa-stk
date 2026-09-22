@@ -14,8 +14,7 @@ export const stkPush = async (
   });
 
   try {
-    const { ResultCode, CheckoutRequestID, ResultDesc } =
-      req.body?.Body?.stkCallback;
+    const { ResultCode, CheckoutRequestID } = req.body?.Body?.stkCallback;
     const metadata = req.body?.Body?.stkCallback?.CallbackMetadata?.Item;
     const receiptItem = metadata?.find(
       (item: { Name: string }) => item.Name === "MpesaReceiptNumber",
@@ -23,10 +22,9 @@ export const stkPush = async (
 
     const receiptNumber = receiptItem?.Value;
 
-    const isProcessed = await callbackService.stkPush({
+    await callbackService.stkPush({
       ResultCode,
       CheckoutRequestID,
-      ResultDesc,
       receiptNumber,
     });
   } catch (error) {

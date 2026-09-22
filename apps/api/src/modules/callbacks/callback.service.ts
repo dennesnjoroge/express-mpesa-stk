@@ -2,21 +2,24 @@ import { pool } from "../../core/config/db.js";
 import { PlansRepository } from "../plans/plans.repository.js";
 import { PaymentRepository } from "../payments/payment.repository.js";
 import { SubscriptionRepository } from "../subscriptions/subscription.repository.js";
+import { mailService } from "../mail/MailService.js";
+import { AuthRepository } from "../auth/auth.repository.js";
+import { ApiError } from "../../core/errors/api-error.js";
 
 interface CallbackServiceParams {
   ResultCode: number;
   CheckoutRequestID: string;
-  ResultDesc: string;
   receiptNumber: string;
 }
 
 const paymentRepository = new PaymentRepository();
 const subscriptionRepository = new SubscriptionRepository();
 const plansRepository = new PlansRepository();
+const authRepository = new AuthRepository();
 
 export class CallbackService {
   async stkPush(params: CallbackServiceParams): Promise<boolean> {
-    const { ResultCode, CheckoutRequestID, ResultDesc, receiptNumber } = params;
+    const { ResultCode, CheckoutRequestID, receiptNumber } = params;
 
     const connection = await pool.getConnection();
 
@@ -56,6 +59,24 @@ export class CallbackService {
         return false;
       }
 
+      const user = await authRepository.getById(
+        subscriptionRecord.user_id,
+        connection,
+      );
+
+      if (!user) {
+        console.error(`User id ${subscriptionRecord.user_id} not found`); //internal
+
+        await connection.rollback();
+        return false;
+      }
+
+      const plan = await plansRepository.getById(subscriptionRecord.plan_id);
+
+      if (!plan) {
+        throw ApiError.badRequest("Plan not found.");
+      }
+
       // Customer cancelled the payment CASE 1
       if (ResultCode === 1032) {
         await paymentRepository.markPaymentAsCancelled(
@@ -85,6 +106,14 @@ export class CallbackService {
         );
 
         await connection.commit();
+
+        mailService.sendPaymentFailedEmail({
+          lastName: user.last_name,
+          email: user.email_address,
+          paymentId: paymentRecord.payment_id,
+          planName: plan.name,
+          amount: Number(plan.amount),
+        });
         return true;
       }
 
@@ -110,12 +139,21 @@ export class CallbackService {
 
       await subscriptionRepository.markSubscriptionAsSuccessful(
         {
-          subscription_id: paymentRecord.subscription_id,
+          id: paymentRecord.subscription_id,
           start_at: startAt,
           expires_at: expiresAt,
         },
         connection,
       );
+
+      mailService.sendSubscriptionSuccessfulEmail({
+        lastName: user.last_name,
+        email: user.email_address,
+        subscriptionId: subscriptionRecord.id,
+        planName: plan.name,
+        expiresAt,
+        amount: plan.amount,
+      });
       /*
       const subscriptionUpdated = await markSubscriptionAsSuccessful(
         {
@@ -138,6 +176,8 @@ export class CallbackService {
         */
 
       await connection.commit();
+
+      // to do: add payment notification email
       return true;
     } catch (error: any) {
       console.error(error);
