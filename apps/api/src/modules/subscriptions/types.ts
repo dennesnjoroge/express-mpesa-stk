@@ -1,4 +1,4 @@
-import { RowDataPacket } from "mysql2/promise";
+import type { RowDataPacket } from "mysql2/promise";
 
 export interface Subscription extends RowDataPacket {
   subscription_id: string;
@@ -16,4 +16,10 @@ export interface CreateSubscriptionRecord {
   subscription_id: string;
   user_id: string;
   plan_id: number;
+}
+
+export interface MarkSubscriptionAsSuccessfulParams {
+  subscription_id: string;
+  start_at: Date;
+  expires_at: Date;
 }
