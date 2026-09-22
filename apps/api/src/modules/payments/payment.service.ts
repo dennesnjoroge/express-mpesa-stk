@@ -4,40 +4,28 @@ import { pool } from "../../core/config/db.js";
 import type { RequestIds } from "./types.js";
 import { ApiError } from "../../core/errors/api-error.js";
 import { PaymentRepository } from "./payment.repository.js";
-import { AuthRepository } from "../auth/auth.repository.js";
 import { SubscriptionRepository } from "../subscriptions/subscription.repository.js";
 import { PlansRepository } from "../plans/plans.repository.js";
 import type { StkPushParams } from "./payment.schema.js";
+import { generateSubscriptionId } from "../subscriptions/utils.js";
 
 const paymentRepository = new PaymentRepository();
-const authRepository = new AuthRepository();
 const subscriptionRepository = new SubscriptionRepository();
 const plansRepository = new PlansRepository();
 
 export class PaymentService {
-  async stkPush(params: StkPushParams): Promise<RequestIds> {
-    const { firstName, lastName, emailAddress, stkPushPhoneNumber, planId } =
-      params;
+  async stkPush(params: StkPushParams, userId: string): Promise<RequestIds> {
+    const { phoneNumber, planId } = params;
 
     const paymentId = randomUUID();
     const subscriptionId = randomUUID();
-
-    // get user id from session
-    const userId = randomUUID();
+    const newSubscriptionId = generateSubscriptionId();
 
     // get plan details
     const plan = await plansRepository.getById(planId);
 
     if (!plan) {
       throw ApiError.badRequest("Plan not found");
-    }
-
-    const user = await authRepository.getByEmailAddress(emailAddress);
-
-    if (user) {
-      throw ApiError.badRequest(
-        `User with email ${emailAddress} already exists in our system.`,
-      );
     }
 
     // --------------------------------
@@ -101,9 +89,9 @@ export class PaymentService {
 
     try {
       const result = await stkPush({
-        accountReference: emailAddress,
+        accountReference: newSubscriptionId,
         amount: plan.amount,
-        phoneNumber: stkPushPhoneNumber,
+        phoneNumber,
       });
 
       const CheckoutRequestID = result.CheckoutRequestID;
