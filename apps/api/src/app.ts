@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import { router } from "./routes.js";
 import { corsOptions } from "./core/middlewares/cors.js";
+import { errorMiddleware } from "./core/middlewares/errors.js";
 
 export const app: Express = express();
 
@@ -15,3 +16,5 @@ app.use("/v1", router);
 app.get("/health", (_req, res) => {
   res.sendStatus(200);
 });
+
+app.use(errorMiddleware);
