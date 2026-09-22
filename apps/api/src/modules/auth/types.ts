@@ -19,7 +19,6 @@ export interface CreateUserParams {
   first_name: string;
   last_name: string;
   email_address: string;
-  phone_number: string;
   password_hash: string;
   status?: User["status"];
 }
@@ -49,6 +48,5 @@ export interface RegisterParams {
   firstName: string;
   lastName: string;
   emailAddress: string;
-  phoneNumber: string;
   password: string;
 }

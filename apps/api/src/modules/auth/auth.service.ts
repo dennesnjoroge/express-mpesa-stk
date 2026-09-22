@@ -14,7 +14,7 @@ const mailService = new MailService();
 
 export class AuthService {
   async register(params: RegisterParams) {
-    const { firstName, lastName, emailAddress, phoneNumber, password } = params;
+    const { firstName, lastName, emailAddress, password } = params;
 
     //find if email exists
     const existingUser = await authRepository.getByEmailAddress(emailAddress);
@@ -49,7 +49,6 @@ export class AuthService {
           first_name: firstName,
           last_name: lastName,
           email_address: emailAddress,
-          phone_number: phoneNumber,
           password_hash: passwordHash,
         },
         connection,
@@ -96,6 +95,8 @@ export class AuthService {
       throw ApiError.badRequest("Invalid email address or password.");
     }
 
+    /*
+    // turn off during debug
     if (existingUser.status === "PENDING_VERIFICATION") {
       // check for existing verification token(email) by user id
       const userVerificationToken =
@@ -143,7 +144,7 @@ export class AuthService {
       throw ApiError.unauthorized(
         "Email not verified. A new verification link has been sent to your inbox.",
       );
-    }
+    }*/
 
     // compare passwords
     const isPasswordValid = await argon2.verify(
