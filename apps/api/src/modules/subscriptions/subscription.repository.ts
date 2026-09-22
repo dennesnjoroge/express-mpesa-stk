@@ -1,5 +1,9 @@
 import type { PoolConnection, Pool } from "mysql2/promise";
-import type { Subscription, CreateSubscriptionRecord } from "./types.js";
+import type {
+  Subscription,
+  CreateSubscriptionRecord,
+  MarkSubscriptionAsSuccessfulParams,
+} from "./types.js";
 import { pool } from "../../core/config/db.js";
 
 const subscription_columns = `
@@ -20,7 +24,13 @@ export class SubscriptionRepository {
     connection: PoolConnection,
   ): Promise<void> {
     await connection.execute(
-      `UPDATE subscriptions set status = 'expired' WHERE user_id = uuid_to_bin(?)`,
+      `
+      UPDATE subscriptions
+      SET status = 'expired'
+      WHERE user_id = UUID_TO_BIN(?)
+        AND status = 'active'
+        AND expires_at <= UTC_TIMESTAMP()
+    `,
       [userId],
     );
   }
@@ -62,6 +72,30 @@ export class SubscriptionRepository {
     await connection.execute(
       `UPDATE subscriptions SET status = 'failed' WHERE id = uuid_to_bin(?)`,
       [subscriptionId],
+    );
+  }
+
+  async getSubscriptionBySubscriptionId(
+    subscriptionId: string,
+    connection: Pool | PoolConnection = pool,
+  ): Promise<Subscription | null> {
+    const [rows] = await connection.execute<Subscription[]>(
+      `SELECT ${subscription_columns} FROM subscriptions WHERE id = uuid_to_bin(?) FOR UPDATE`,
+      [subscriptionId],
+    );
+
+    return rows[0] ?? null;
+  }
+
+  async markSubscriptionAsSuccessful(
+    params: MarkSubscriptionAsSuccessfulParams,
+    connection: PoolConnection,
+  ): Promise<void> {
+    const { subscription_id, start_at, expires_at } = params;
+
+    await connection.execute(
+      `UPDATE subscriptions SET status = 'active', start_at = ?, expires_at = ? WHERE id = uuid_to_bin(?)`,
+      [start_at, expires_at, subscription_id],
     );
   }
 }
