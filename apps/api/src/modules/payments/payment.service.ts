@@ -175,7 +175,7 @@ export class PaymentService {
 
     return {
       status: payment.status,
-      subscriptionId: subscription.subscription_id,
+      subscription,
     };
   }
 }

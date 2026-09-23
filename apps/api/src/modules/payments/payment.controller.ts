@@ -5,8 +5,6 @@ import { ApiError } from "../../core/errors/api-error.js";
 
 const paymentService = new PaymentService();
 
-const kenyanPhoneRegex = /^(?:07\d{8}|011\d{7})$/;
-
 export const normalizeKenyanPhone = (phone: string): string => {
   const normalized = phone.trim().replace(/\s+/g, "");
 
@@ -87,10 +85,10 @@ export const paymentStatus = async (
       throw ApiError.badRequest("Checkout request ID is required.");
     }
 
-    const { status, subscriptionId } =
+    const { status, subscription } =
       await paymentService.paymentStatus(checkoutRequestId);
 
-    res.status(200).json({ status, subscriptionId });
+    res.status(200).json({ status, subscription });
   } catch (error) {
     next(error);
   }
