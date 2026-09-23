@@ -93,4 +93,15 @@ export class PaymentRepository {
       [mpesa_receipt_number, checkout_request_id],
     );
   }
+
+  async getPaymentStatusByCheckoutRequestId(
+    checkoutRequestId: string,
+  ): Promise<Payment | null> {
+    const [rows] = await pool.execute<Payment[]>(
+      `SELECT ${paymentColumns} FROM payments WHERE checkout_request_id = ?`,
+      [checkoutRequestId],
+    );
+
+    return rows[0] ?? null;
+  }
 }

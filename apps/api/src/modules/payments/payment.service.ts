@@ -147,4 +147,35 @@ export class PaymentService {
       throw error;
     }
   }
+
+  async paymentStatus(checkoutRequestId: string) {
+    const payment =
+      await paymentRepository.getPaymentStatusByCheckoutRequestId(
+        checkoutRequestId,
+      );
+
+    if (!payment) {
+      throw ApiError.badRequest("Payment record not found.");
+    }
+
+    if (payment.status !== "success") {
+      return {
+        status: payment.status,
+      };
+    }
+
+    const subscription =
+      await subscriptionRepository.getSubscriptionBySubscriptionId(
+        payment.subscription_id,
+      );
+
+    if (!subscription) {
+      throw ApiError.badRequest("Subscription record not found.");
+    }
+
+    return {
+      status: payment.status,
+      subscriptionId: subscription.subscription_id,
+    };
+  }
 }

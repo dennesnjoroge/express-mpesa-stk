@@ -69,4 +69,29 @@ export const stkPushController = async (
   }
 };
 
-export const paymentStatusController = () => {};
+export const paymentStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { checkoutRequestId } = req.query;
+
+    const userId = req.user?.id;
+
+    if (!userId) {
+      throw ApiError.unauthorized();
+    }
+
+    if (typeof checkoutRequestId !== "string" || !checkoutRequestId.trim()) {
+      throw ApiError.badRequest("Checkout request ID is required.");
+    }
+
+    const { status, subscriptionId } =
+      await paymentService.paymentStatus(checkoutRequestId);
+
+    res.status(200).json({ status, subscriptionId });
+  } catch (error) {
+    next(error);
+  }
+};
