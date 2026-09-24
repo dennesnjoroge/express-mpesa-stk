@@ -144,7 +144,14 @@ export const deleteUser = async (
     // should clear auth cookie
     await authService.deleteUser(user.id);
 
-    res.status(200).json({ message: "Account deleted successfully." });
+    res.clearCookie("access_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 3600000,
+    });
+
+    return res.status(200).json({ message: "Account deleted successfully." });
   } catch (error) {
     next(error);
   }
