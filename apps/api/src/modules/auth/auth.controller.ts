@@ -75,8 +75,6 @@ export const login = async (
       password,
     });
 
-    console.log(access_token);
-
     res.cookie("access_token", access_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -124,6 +122,29 @@ export const logout = async (
     });
 
     return res.status(200).json({ message: "Successfully logged out." });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const user = req.user as { id?: string } | undefined;
+
+    if (!user?.id) {
+      throw ApiError.unauthorized();
+    }
+
+    //console.log(user);
+
+    // should clear auth cookie
+    await authService.deleteUser(user.id);
+
+    res.status(200).json({ message: "Account deleted successfully." });
   } catch (error) {
     next(error);
   }
