@@ -126,4 +126,8 @@ export class AuthRepository {
 
     return rows[0] ?? null;
   };
+
+  deleteUser = async (userId: string): Promise<void> => {
+    await pool.execute(`DELETE FROM users WHERE id = UUID_TO_BIN(?)`, [userId]);
+  };
 }
