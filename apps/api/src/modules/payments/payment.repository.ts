@@ -104,4 +104,17 @@ export class PaymentRepository {
 
     return rows[0] ?? null;
   }
+
+  async getByUserId(userId: string): Promise<Payment[]> {
+    const [rows] = await pool.execute<Payment[]>(
+      `SELECT p.*
+     FROM payments p
+     INNER JOIN subscriptions s
+       ON p.subscription_id = s.id
+     WHERE s.user_id = UUID_TO_BIN(?)`,
+      [userId],
+    );
+
+    return rows;
+  }
 }
