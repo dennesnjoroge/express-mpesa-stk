@@ -192,6 +192,95 @@ export class MailService {
 
     return data.id;
   }
+
+  async sendAccountDataExport(email: string, firstName: string, pdf: any) {
+    const from =
+      process.env.MAIL_FROM ?? "Loft Technologies <noreply@mail.loft.co.ke>";
+
+    const { data, error } = await resend.emails.send({
+      from,
+      to: email,
+      subject: "Subscription cancelled",
+      html: `
+      <p>Hello ${firstName},</p>
+      <p>
+      Your account data is attached to this email.
+      </p>
+        <p>
+        Your account deletion will now be completed.
+      </p>
+
+      <p>Loft Technologies</p>
+      <p>
+      This is an automated email. Do not reply.
+      </p>
+    `,
+      attachments: [
+        {
+          filename: "account-data.pdf",
+          content: pdf,
+        },
+      ],
+    });
+
+    if (error) {
+      throw new Error(
+        `Failed to send subscription confirmation email: ${error.message}`,
+      );
+    }
+
+    if (!data?.id) {
+      throw new Error("Resend did not return an email ID");
+    }
+
+    return data.id;
+  }
+
+  async sendAccountDeleted(email: string, firstName: string) {
+    const from =
+      process.env.MAIL_FROM ?? "Loft Technologies <noreply@mail.loft.co.ke>";
+
+    const { data, error } = await resend.emails.send({
+      from,
+      to: email,
+      subject: "Account deleted",
+      html: `
+      <p>Hello ${firstName},</p>
+
+      <p>
+        Your Loft Technologies account has been successfully deleted.
+      </p>
+
+      <p>
+        Your account data has been permanently removed in accordance with our
+        account deletion process.
+      </p>
+
+      <p>
+        If you did not request this deletion, please contact Loft Technologies
+        support immediately.
+      </p>
+
+      <p>Loft Technologies</p>
+
+      <p>
+        This is an automated email. Do not reply.
+      </p>
+    `,
+    });
+
+    if (error) {
+      throw new Error(
+        `Failed to send account deletion email: ${error.message}`,
+      );
+    }
+
+    if (!data?.id) {
+      throw new Error("Resend did not return an email ID");
+    }
+
+    return data.id;
+  }
 }
 
 export const mailService = new MailService();
