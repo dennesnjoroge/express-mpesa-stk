@@ -18,6 +18,19 @@ const subscription_columns = `
   bin_to_uuid(active_user_id) AS active_user_id 
 `;
 
+const subscription_columns_with_plan_name_join = `
+  id,
+  bin_to_uuid(s.user_id) AS user_id,
+  bin_to_uuid(s.plan_id) AS plan_id,
+  p.name AS plan_name,
+  s.start_at,
+  s.expires_at,
+  s.status,
+  s.created_at,
+  s.updated_at,
+  bin_to_uuid(s.active_user_id) AS active_user_id
+`;
+
 export class SubscriptionRepository {
   async expireExpiredSubscriptionByUserId(
     userId: string,
@@ -123,5 +136,16 @@ export class SubscriptionRepository {
       `UPDATE subscriptions SET status = 'cancelled' WHERE id = ? AND status = 'active'`,
       [subscriptionId],
     );
+  }
+
+  async getByUserId(userId: string): Promise<Subscription[]> {
+    const [rows] = await pool.execute<Subscription[]>(
+      `SELECT ${subscription_columns_with_plan_name_join}  FROM subscriptions s
+      INNER JOIN plans p ON p.id = s.plan_id
+      WHERE s.user_id = UUID_TO_BIN(?)`,
+      [userId],
+    );
+
+    return rows;
   }
 }
