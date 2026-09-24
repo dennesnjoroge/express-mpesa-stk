@@ -19,9 +19,9 @@ const subscription_columns = `
 `;
 
 const subscription_columns_with_plan_name_join = `
-  id,
+  s.id,
   bin_to_uuid(s.user_id) AS user_id,
-  bin_to_uuid(s.plan_id) AS plan_id,
+  s.plan_id,
   p.name AS plan_name,
   s.start_at,
   s.expires_at,
