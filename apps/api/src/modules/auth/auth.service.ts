@@ -8,9 +8,14 @@ import { MailService } from "../mail/MailService.js";
 import { createVerificationLink } from "./utils.js";
 import type { LoginParams, RegisterParams } from "./types.js";
 import jwt from "jsonwebtoken";
+import { SubscriptionRepository } from "../subscriptions/subscription.repository.js";
+import { PaymentRepository } from "../payments/payment.repository.js";
+import { generateUserDataPdf } from "./pdf-kit.js";
 
 const authRepository = new AuthRepository();
 const mailService = new MailService();
+const subscriptionRepository = new SubscriptionRepository();
+const paymentRepository = new PaymentRepository();
 
 export class AuthService {
   async register(params: RegisterParams) {
@@ -185,5 +190,76 @@ export class AuthService {
     };
 
     return authUser;
+  }
+
+  async deleteUser(userId: string) {
+    const user = await authRepository.getById(userId);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // 1. Collect data before deletion
+    const data = await this.getUserDataForExport(userId);
+
+    // 2. Generate export
+    const pdf = await generateUserDataPdf(data);
+
+    await mailService.sendAccountDataExport(
+      user.email_address,
+      user.first_name,
+      pdf,
+    );
+
+    await authRepository.deleteUser(userId);
+
+    mailService.sendAccountDeleted(user.email_address, user.first_name);
+
+    // send alert email
+    // delete user data
+    // payments
+    // subscriptions
+  }
+
+  async getUserDataForExport(userId: string) {
+    const user = await authRepository.getById(userId);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const subscriptions = await subscriptionRepository.getByUserId(userId);
+    const payments = await paymentRepository.getByUserId(userId);
+
+    const normalizedSubscriptions = subscriptions.map((subscription) => ({
+      id: subscription.id,
+      plan: subscription.plan_name,
+      status: subscription.status,
+      startAt: subscription.start_at ?? subscription.startAt ?? new Date(0),
+      expiresAt:
+        subscription.expires_at ?? subscription.expiresAt ?? new Date(0),
+    }));
+
+    const normalizedPayments = payments.map((payment) => ({
+      id: payment.id,
+      amount: Number(payment.amount ?? 0),
+      status: payment.status,
+      receipt: payment.mpesa_receipt_number ?? null,
+      phoneNumber: payment.phone_number ?? payment.phoneNumber ?? "",
+      createdAt: payment.created_at ?? payment.createdAt ?? new Date(0),
+    }));
+
+    return {
+      user: {
+        id: user.id,
+        firstName: user.first_name ?? user.firstName ?? "",
+        lastName: user.last_name ?? user.lastName ?? "",
+        email: user.email_address ?? user.email ?? "",
+        phone: user.phone_number ?? user.phone ?? "",
+        createdAt: user.created_at ?? user.createdAt ?? new Date(0),
+      },
+      subscriptions: normalizedSubscriptions,
+      payments: normalizedPayments,
+    };
   }
 }
