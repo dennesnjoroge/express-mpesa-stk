@@ -210,10 +210,12 @@ export class MailService {
         Your account deletion will now be completed.
       </p>
 
-      <p>Loft Technologies</p>
-      <p>
+       <p>
       This is an automated email. Do not reply.
       </p>
+
+      <p>Loft Technologies</p>
+     
     `,
       attachments: [
         {
@@ -261,11 +263,11 @@ export class MailService {
         support immediately.
       </p>
 
-      <p>Loft Technologies</p>
-
       <p>
         This is an automated email. Do not reply.
       </p>
+
+      <p>Loft Technologies</p>
     `,
     });
 
