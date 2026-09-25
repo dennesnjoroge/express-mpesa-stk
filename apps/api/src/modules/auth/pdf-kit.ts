@@ -13,8 +13,8 @@ export interface UserDataExport {
     id: string;
     plan: string;
     status: string;
-    startAt: Date;
-    expiresAt: Date;
+    startAt: Date | null;
+    expiresAt: Date | null;
   }>;
 
   payments: Array<{
@@ -81,19 +81,30 @@ export function generateUserDataPdf(data: UserDataExport): Promise<Buffer> {
     for (const subscription of data.subscriptions) {
       doc
         .fontSize(11)
+        .text(`Subscription ID: ${subscription.id}`)
         .text(`Plan: ${subscription.plan}`)
         .text(`Status: ${subscription.status}`)
         .text(
-          `Start: ${subscription.startAt.toLocaleString("en-KE", {
-            dateStyle: "long",
-            timeStyle: "short",
-          })}`,
+          /*
+        // old
+          `Start: ${
+            subscription.startAt?.toLocaleString("en-KE", {
+              dateStyle: "long",
+              timeStyle: "short",
+            }) ?? "N/A"
+          }`,
+          */
+          `Start: ${subscription.startAt ? subscription.startAt.toLocaleString("en-KE", { dateStyle: "long", timeStyle: "short" }) : "N/A"}`,
         )
         .text(
-          `Expires: ${subscription.expiresAt.toLocaleString("en-KE", {
-            dateStyle: "long",
-            timeStyle: "short",
-          })}`,
+          `Expires: ${
+            subscription.expiresAt
+              ? subscription.expiresAt.toLocaleString("en-KE", {
+                  dateStyle: "long",
+                  timeStyle: "short",
+                })
+              : "N/A"
+          }`,
         )
         .moveDown();
     }
@@ -105,15 +116,17 @@ export function generateUserDataPdf(data: UserDataExport): Promise<Buffer> {
     for (const payment of data.payments) {
       doc
         .fontSize(11)
+        .text(`Payment ID: ${payment.id}`)
         .text(`Amount: KES ${payment.amount}`)
         .text(`Status: ${payment.status}`)
-        .text(`Receipt: ${payment.receipt ?? "N/A"}`)
         .text(
           `Date: ${payment.createdAt.toLocaleString("en-KE", {
             dateStyle: "long",
             timeStyle: "short",
           })}`,
         )
+        .text(`M-Pesa Receipt: ${payment.receipt ?? "N/A"}`)
+
         .moveDown();
     }
 
