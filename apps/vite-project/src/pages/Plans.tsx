@@ -1,28 +1,33 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import apiClient from "../config/apiClient";
+
+type Plan = {
+  id: number;
+  name: string;
+  amount: number;
+  duration_days: number;
+};
 
 export const Plans = () => {
   const navigate = useNavigate();
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const plans = [
-    {
-      id: 1,
-      name: "Basic",
-      amount: 100,
-      duration_days: 30,
-    },
-    {
-      id: 2,
-      name: "Standard",
-      amount: 250,
-      duration_days: 30,
-    },
-    {
-      id: 3,
-      name: "Premium",
-      amount: 500,
-      duration_days: 30,
-    },
-  ];
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const { data } = await apiClient.get<Plan[]>("/plans");
+        setPlans(data);
+      } catch (error) {
+        console.error("Failed to load plans:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void fetchPlans();
+  }, []);
 
   const handleSubscribe = (planId: number) => {
     navigate(`/checkout/${planId}`);
@@ -49,36 +54,42 @@ export const Plans = () => {
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          {plans.map((plan) => (
-            <section
-              key={plan.id}
-              className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm"
-            >
-              <h2 className="text-lg font-semibold text-gray-900">
-                {plan.name}
-              </h2>
-
-              <div className="mt-4">
-                <span className="text-3xl font-bold text-gray-900">
-                  KES {plan.amount.toFixed(2)}
-                </span>
-
-                <span className="ml-1 text-sm text-gray-500">
-                  / {plan.duration_days} days
-                </span>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => handleSubscribe(plan.id)}
-                className="mt-6 w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        {loading ? (
+          <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
+            Loading plans...
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-3">
+            {plans.map((plan) => (
+              <section
+                key={plan.id}
+                className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm"
               >
-                Subscribe
-              </button>
-            </section>
-          ))}
-        </div>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {plan.name}
+                </h2>
+
+                <div className="mt-4">
+                  <span className="text-3xl font-bold text-gray-900">
+                    KES {Number(plan.amount).toFixed(2)}
+                  </span>
+
+                  <span className="ml-1 text-sm text-gray-500">
+                    / {plan.duration_days} days
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleSubscribe(plan.id)}
+                  className="mt-6 w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  Subscribe
+                </button>
+              </section>
+            ))}
+          </div>
+        )}
       </div>
     </main>
   );
