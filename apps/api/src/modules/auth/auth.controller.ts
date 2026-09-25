@@ -5,6 +5,7 @@ import { ApiError } from "../../core/errors/api-error.js";
 
 const authService = new AuthService();
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const nameRegex = /^[\p{L}]+(?:[ '-][\p{L}]+)*$/u;
 
 export const register = async (
   req: Request,
@@ -20,8 +21,16 @@ export const register = async (
       throw ApiError.badRequest("First name is required.");
     }
 
+    if (!nameRegex.test(firstName)) {
+      throw ApiError.badRequest("Enter a valid first name");
+    }
+
     if (!lastName) {
       throw ApiError.badRequest("Last name is required.");
+    }
+
+    if (!nameRegex.test(lastName)) {
+      throw ApiError.badRequest("Enter a valid last name");
     }
 
     if (!emailAddress) {
