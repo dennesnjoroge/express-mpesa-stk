@@ -1,20 +1,50 @@
 import { type FormEvent, useState } from "react";
+import { useNavigate } from "react-router";
+import { useAuth } from "../context/AuthContext";
 
 export const Register = () => {
+  const navigate = useNavigate();
+  const { register } = useAuth();
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setLoading(true);
+    setError("");
 
-    console.log({
-      first_name: firstName,
-      last_name: lastName,
-      email_address: emailAddress,
-      password,
-    });
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      await register({
+        firstName,
+        lastName,
+        emailAddress,
+        password,
+      });
+
+      navigate(
+        `/verification-email-sent?email=${encodeURIComponent(emailAddress)}`,
+        { replace: true },
+      );
+    } catch (err) {
+      console.error(err);
+      setError(
+        "Unable to create account. Please check the form and try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -29,6 +59,12 @@ export const Register = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          {error && (
+            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <div>
               <label
@@ -118,11 +154,40 @@ export const Register = () => {
             />
           </div>
 
+          <div>
+            <label
+              htmlFor="confirm-password"
+              className="mb-1.5 block text-sm font-medium text-gray-700"
+            >
+              Confirm password
+            </label>
+
+            <input
+              id="confirm-password"
+              name="confirm-password"
+              type="password"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              autoComplete="new-password"
+              required
+              className="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              placeholder="••••••••"
+            />
+          </div>
+
           <button
             type="submit"
-            className="w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            disabled={loading}
+            className="flex w-full items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 focus:outline-none active:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Create account
+            {loading && (
+              <span
+                className="size-5 animate-spin rounded-full border-2 border-white border-t-transparent"
+                role="status"
+                aria-label="Processing registration"
+              />
+            )}
+            {loading ? "Creating account..." : "Create account"}
           </button>
         </form>
 
