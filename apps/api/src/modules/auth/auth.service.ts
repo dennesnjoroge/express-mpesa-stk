@@ -235,13 +235,14 @@ export class AuthService {
       id: subscription.id,
       plan: subscription.plan_name,
       status: subscription.status,
-      startAt: subscription.start_at ?? subscription.startAt ?? new Date(0),
-      expiresAt:
-        subscription.expires_at ?? subscription.expiresAt ?? new Date(0),
+      startAt: subscription.start_at ? new Date(subscription.startAt) : null,
+      expiresAt: subscription.expires_at
+        ? new Date(subscription.expiresAt)
+        : null,
     }));
 
     const normalizedPayments = payments.map((payment) => ({
-      id: payment.id,
+      id: payment.payment_id,
       amount: Number(payment.amount ?? 0),
       status: payment.status,
       receipt: payment.mpesa_receipt_number ?? null,
