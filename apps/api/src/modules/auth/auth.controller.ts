@@ -165,3 +165,27 @@ export const deleteUser = async (
     next(error);
   }
 };
+
+export const resendVerification = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const emailAddress = req.body?.emailAddress;
+
+    if (
+      typeof emailAddress !== "string" ||
+      !emailAddress ||
+      !emailRegex.test(emailAddress)
+    ) {
+      return res.sendStatus(200);
+    }
+
+    await authService.resendVerification(emailAddress);
+
+    return res.sendStatus(200);
+  } catch (error) {
+    next(error);
+  }
+};

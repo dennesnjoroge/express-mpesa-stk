@@ -5,6 +5,7 @@ import {
   currentAuthUser,
   logout,
   deleteUser,
+  resendVerification,
 } from "./auth.controller.js";
 import { authmiddleware } from "../../core/middlewares/auth.js";
 
@@ -15,3 +16,4 @@ authRoutes.post("/login", login);
 authRoutes.get("/me", authmiddleware, currentAuthUser);
 authRoutes.post("/logout", authmiddleware, logout);
 authRoutes.post("/delete", authmiddleware, deleteUser);
+authRoutes.post("/resend-verification", resendVerification);
