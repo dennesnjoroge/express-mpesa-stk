@@ -91,6 +91,17 @@ export class AuthRepository {
     return rows[0] ?? null;
   }
 
+  async getByEmailAddressNotVerified(
+    emailAddress: string,
+  ): Promise<User | null> {
+    const [rows] = await pool.execute<User[]>(
+      `SELECT ${USER_COLUMNS} FROM users WHERE email_address = ? AND status = 'PENDING_VERIFICATION' LIMIT 1`,
+      [emailAddress],
+    );
+
+    return rows[0] ?? null;
+  }
+
   createVerificationToken = async (
     params: CreateVerificationTokenParams,
     connection: Pool | PoolConnection = pool,

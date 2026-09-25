@@ -263,4 +263,42 @@ export class AuthService {
       payments: normalizedPayments,
     };
   }
+
+  async resendVerification(email: string) {
+    // get non verified user
+    const user = await authRepository.getByEmailAddressNotVerified(email);
+
+    if (!user) {
+      //console.log("user not found"); //debug
+      return;
+    }
+
+    const verificationTokenId = randomUUID();
+
+    const verificationToken = crypto.randomBytes(32).toString("base64url");
+    const verificationTokenHash = crypto
+      .createHash("sha256")
+      .update(verificationToken)
+      .digest("base64url");
+
+    const verificationTokenExpiresAt = new Date(Date.now() + 30 * 60 * 1000);
+
+    await authRepository.createVerificationToken({
+      id: verificationTokenId,
+      user_id: user.id,
+      token_hash: verificationTokenHash,
+      expires_at: verificationTokenExpiresAt,
+    });
+
+    const verificationLink = createVerificationLink({
+      token: verificationToken,
+      ref: verificationTokenId,
+    });
+
+    mailService.sendVerificationEmail({
+      to: user.email_address,
+      firstName: user.first_name,
+      verificationLink,
+    });
+  }
 }
