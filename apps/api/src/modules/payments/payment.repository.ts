@@ -107,7 +107,17 @@ export class PaymentRepository {
 
   async getByUserId(userId: string): Promise<Payment[]> {
     const [rows] = await pool.execute<Payment[]>(
-      `SELECT p.*
+      `SELECT
+       BIN_TO_UUID(p.payment_id) AS payment_id,
+       p.subscription_id,
+       p.amount,
+       p.method,
+       p.status,
+      p.checkout_request_id,
+      p.merchant_request_id,
+      p.mpesa_receipt_number,
+      p.created_at,
+      p.paid_at
      FROM payments p
      INNER JOIN subscriptions s
        ON p.subscription_id = s.id
