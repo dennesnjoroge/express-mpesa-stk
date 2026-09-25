@@ -189,3 +189,24 @@ export const resendVerification = async (
     next(error);
   }
 };
+
+export const verifyEmail = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const token = req.body?.verificationToken;
+    const ref = req.body?.ref;
+
+    if (!token || !ref) {
+      throw ApiError.badRequest("Invalid reset link.");
+    }
+
+    await authService.verifyEmail(token.trim(), ref.trim());
+
+    res.sendStatus(200);
+  } catch (error) {
+    next(error);
+  }
+};
