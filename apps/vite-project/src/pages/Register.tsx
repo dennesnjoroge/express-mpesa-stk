@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
+import { Eye, EyeOff } from "lucide-react";
 
 export const Register = () => {
   const navigate = useNavigate();
@@ -10,7 +11,9 @@ export const Register = () => {
   const [lastName, setLastName] = useState("");
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -18,6 +21,12 @@ export const Register = () => {
     event.preventDefault();
     setLoading(true);
     setError("");
+
+    if (password.length < 8) {
+      setError("Password must be atleast 8 characters.");
+      setLoading(false);
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
@@ -71,7 +80,7 @@ export const Register = () => {
                 htmlFor="first_name"
                 className="mb-1.5 block text-sm font-medium text-gray-700"
               >
-                First name
+                First name*
               </label>
 
               <input
@@ -93,7 +102,7 @@ export const Register = () => {
                 htmlFor="last_name"
                 className="mb-1.5 block text-sm font-medium text-gray-700"
               >
-                Last name
+                Last name*
               </label>
 
               <input
@@ -116,7 +125,7 @@ export const Register = () => {
               htmlFor="email_address"
               className="mb-1.5 block text-sm font-medium text-gray-700"
             >
-              Email address
+              Email address*
             </label>
 
             <input
@@ -138,20 +147,32 @@ export const Register = () => {
               htmlFor="password"
               className="mb-1.5 block text-sm font-medium text-gray-700"
             >
-              Password
+              Password*
             </label>
 
-            <input
-              id="password"
-              name="password"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              autoComplete="new-password"
-              required
-              className="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                autoComplete="new-password"
+                required
+                className="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                placeholder="••••••••"
+              />
+
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition-colors hover:text-slate-700 disabled:cursor-not-allowed"
+              >
+                {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+              </button>
+            </div>
           </div>
 
           <div>
@@ -159,20 +180,34 @@ export const Register = () => {
               htmlFor="confirm-password"
               className="mb-1.5 block text-sm font-medium text-gray-700"
             >
-              Confirm password
+              Confirm password*
             </label>
 
-            <input
-              id="confirm-password"
-              name="confirm-password"
-              type="password"
-              value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-              autoComplete="new-password"
-              required
-              className="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                id="confirm-password"
+                name="confirm-password"
+                type={showConfirmPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                autoComplete="new-password"
+                required
+                className="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                placeholder="••••••••"
+              />
+
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                aria-label={
+                  showConfirmPassword ? "Hide password" : "Show password"
+                }
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition-colors hover:text-slate-700 disabled:cursor-not-allowed"
+              >
+                {showConfirmPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+              </button>
+            </div>
           </div>
 
           <button
