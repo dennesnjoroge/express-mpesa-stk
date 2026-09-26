@@ -102,6 +102,16 @@ export class AuthRepository {
     return rows[0] ?? null;
   }
 
+  async markUserAsVerified(
+    userId: string,
+    connection: PoolConnection,
+  ): Promise<void> {
+    await connection.execute(
+      `UPDATE users SET status = 'ACTIVE', email_verified_at = ? WHERE id = UUID_TO_BIN(?) AND status = 'PENDING_VERIFICATION' AND email_verified_at IS NULL`,
+      [new Date(), userId],
+    );
+  }
+
   createVerificationToken = async (
     params: CreateVerificationTokenParams,
     connection: Pool | PoolConnection = pool,
@@ -136,6 +146,27 @@ export class AuthRepository {
     );
 
     return rows[0] ?? null;
+  };
+
+  getVerificationTokenById = async (
+    id: string,
+  ): Promise<EmailVerificationToken | null> => {
+    const [rows] = await pool.execute<EmailVerificationToken[]>(
+      `SELECT ${EMAIL_VERIFICATION_TOKEN_COLUMNS} FROM email_verification_tokens WHERE id = uuid_to_bin(?) AND expires_at > NOW() AND used_at IS NULL`,
+      [id],
+    );
+
+    return rows[0] ?? null;
+  };
+
+  markVerificationTokenAsUsed = async (
+    id: string,
+    connection: PoolConnection,
+  ) => {
+    await connection.execute(
+      `UPDATE email_verification_tokens SET used_at = ? WHERE id = UUID_TO_BIN(?) AND used_at IS NULL`,
+      [new Date(), id],
+    );
   };
 
   deleteUser = async (userId: string): Promise<void> => {
