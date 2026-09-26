@@ -148,8 +148,6 @@ export const deleteUser = async (
       throw ApiError.unauthorized();
     }
 
-    //console.log(user);
-
     // should clear auth cookie
     await authService.deleteUser(user.id);
 
@@ -184,7 +182,10 @@ export const resendVerification = async (
 
     await authService.resendVerification(emailAddress);
 
-    return res.sendStatus(200);
+    return res.status(200).json({
+      message:
+        "If an account with that email exists. An new verification link has been sent.",
+    });
   } catch (error) {
     next(error);
   }
@@ -205,7 +206,9 @@ export const verifyEmail = async (
 
     await authService.verifyEmail(token.trim(), ref.trim());
 
-    res.sendStatus(200);
+    res
+      .status(200)
+      .json({ message: "Your email has been verified successfully." });
   } catch (error) {
     next(error);
   }
