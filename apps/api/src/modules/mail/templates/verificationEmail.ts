@@ -26,13 +26,5 @@ export const verificationEmailTemplate = (
           <p>
             This verification link will expire in 30 minutes.
           </p>
-
-         <p>
-            This is an automated email. Please do not reply to this message.
-         </p>
-
-          <p>
-           Loft Technologies
-          </p>
         </div>`;
 };

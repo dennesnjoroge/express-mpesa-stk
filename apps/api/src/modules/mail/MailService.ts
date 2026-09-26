@@ -46,7 +46,8 @@ export class MailService {
     firstName,
     verificationLink,
   }: SendVerificationEmailParams): Promise<string> => {
-    const from = process.env.MAIL_FROM ?? "Loft<noreply@mail.loft.co.ke>";
+    const from =
+      process.env.MAIL_FROM ?? "M-Pesa Checkout Flow <noreply@mail.loft.co.ke>";
 
     const { data, error } = await resend.emails.send({
       from,
@@ -69,7 +70,8 @@ export class MailService {
   async sendSubscriptionSuccessfulEmail(params: SendSubscriptionSuccessful) {
     const { email, lastName, subscriptionId, planName, expiresAt, amount } =
       params;
-    const from = process.env.MAIL_FROM ?? "Loft <noreply@mail.loft.co.ke>";
+    const from =
+      process.env.MAIL_FROM ?? "M-Pesa Checkout Flow <noreply@mail.loft.co.ke>";
 
     const { data, error } = await resend.emails.send({
       from,
@@ -92,10 +94,6 @@ export class MailService {
     </p>
 
     <p>Amount: KES ${amount}</p>
-
-    <p>
-      This is an automated email. Do not reply.
-    </p>
   `,
     });
 
@@ -114,7 +112,8 @@ export class MailService {
 
   async sendPaymentFailedEmail(params: SendPaymentFailedEmail) {
     const { lastName, email, paymentId, planName, amount } = params;
-    const from = process.env.MAIL_FROM ?? "Loft <noreply@mail.loft.co.ke>";
+    const from =
+      process.env.MAIL_FROM ?? "M-Pesa Checkout Flow <noreply@mail.loft.co.ke>";
 
     const { data, error } = await resend.emails.send({
       from,
@@ -132,9 +131,6 @@ export class MailService {
       </p>
       <p>
       Please try again if you would like to continue.
-      </p>
-      <p>
-      This is an automated email. Do not reply.
       </p>
     `,
     });
@@ -154,7 +150,8 @@ export class MailService {
 
   async sendSubscriptionCancelledEmail(params: SendSubscriptionCancelledEmail) {
     const { lastName, email, subscriptionId, planName, expiresAt } = params;
-    const from = process.env.MAIL_FROM ?? "Loft <noreply@mail.loft.co.ke>";
+    const from =
+      process.env.MAIL_FROM ?? "M-Pesa Checkout Flow <noreply@mail.loft.co.ke>";
 
     const { data, error } = await resend.emails.send({
       from,
@@ -169,9 +166,6 @@ export class MailService {
       </p>
       <p>
       If you cancelled this by mistake, you can purchase a new subscription from your account.
-      </p>
-      <p>
-      This is an automated email. Do not reply.
       </p>
     `,
     });
@@ -190,24 +184,25 @@ export class MailService {
   }
 
   async sendWelcome(email: string, firstName: string) {
-    const from = process.env.MAIL_FROM ?? "Loft <noreply@mail.loft.co.ke>";
+    const from =
+      process.env.MAIL_FROM ?? "M-Pesa Checkout Flow <noreply@mail.loft.co.ke>";
 
     const { data, error } = await resend.emails.send({
       from,
       to: email,
-      subject: "Welcome to Loft",
+      subject: "Welcome to M-Pesa Checkout Flow",
       html: `
       <p>Hello ${firstName},</p>
 
       <p>
-        Welcome to Loft!
+        Welcome to M-Pesa Checkout Flows!
       </p>
 
       <p>
        Your account has been successfully created. We're glad to have you with us.
       </p>
 
-      <p>Loft Team</p>
+      <p>M-Pesa Checkout Flow Team</p>
     `,
     });
 
@@ -225,12 +220,13 @@ export class MailService {
   }
 
   async sendAccountDataExport(email: string, firstName: string, pdf: any) {
-    const from = process.env.MAIL_FROM ?? "Loft <noreply@mail.loft.co.ke>";
+    const from =
+      process.env.MAIL_FROM ?? "M-Pesa Checkout Flow <noreply@mail.loft.co.ke>";
 
     const { data, error } = await resend.emails.send({
       from,
       to: email,
-      subject: "Your Loft account data",
+      subject: "Your M-Pesa Checkout Flow account data",
       html: `
       <p>Hello ${firstName},</p>
       <p>
@@ -243,9 +239,6 @@ export class MailService {
        <p>
       This is an automated email. Do not reply.
       </p>
-
-      <p>Loft Technologies</p>
-     
     `,
       attachments: [
         {
@@ -269,7 +262,8 @@ export class MailService {
   }
 
   async sendAccountDeleted(email: string, firstName: string) {
-    const from = process.env.MAIL_FROM ?? "Loft <noreply@mail.loft.co.ke>";
+    const from =
+      process.env.MAIL_FROM ?? "M-Pesa Checkout Flow <noreply@mail.loft.co.ke>";
 
     const { data, error } = await resend.emails.send({
       from,
@@ -279,24 +273,13 @@ export class MailService {
       <p>Hello ${firstName},</p>
 
       <p>
-        Your Loft Technologies account has been successfully deleted.
+        Your M-Pesa Checkout Flow Technologies account has been successfully deleted.
       </p>
 
       <p>
         Your account data has been permanently removed in accordance with our
         account deletion process.
       </p>
-
-      <p>
-        If you did not request this deletion, please contact Loft Technologies
-        support immediately.
-      </p>
-
-      <p>
-        This is an automated email. Do not reply.
-      </p>
-
-      <p>Loft Technologies</p>
     `,
     });
 
