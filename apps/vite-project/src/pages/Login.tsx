@@ -1,16 +1,68 @@
 import { type FormEvent, useState } from "react";
+import { useLocation, useNavigate } from "react-router";
+import { useAuth } from "../context/AuthContext";
+import { toast } from "react-toastify";
+import axios from "axios";
 
 export const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const [emailAddress, setEmailAddress] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    console.log({
-      email,
-      password,
-    });
+    if (!emailAddress) {
+      setError("Email address is required");
+      return;
+    }
+
+    if (!password) {
+      setError("Password is required");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const { data } = await login(emailAddress, password);
+
+      const redirectTo =
+        (location.state as { from?: string } | null)?.from ?? "/";
+      toast.success(data.message || "Login successful");
+      navigate(redirectTo, { replace: true });
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response) {
+          const { data } = err.response;
+          setError(
+            data.message ||
+              "Something went wrong while processing your request. Please try again in a few moments.",
+          );
+        } else if (err.request) {
+          console.log(err.request);
+          setError(
+            "We are unable to connect to our services right now. Please check your internet connection and try again.",
+          );
+        } else {
+          setError(
+            "Something went wrong while processing your request. Please try again in a few moments.",
+          );
+        }
+      } else {
+        setError(
+          "Something went wrong while processing your request. Please try again in a few moments.",
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -22,22 +74,27 @@ export const Login = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          {error && (
+            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
           <div>
             <label
               htmlFor="email"
               className="mb-1.5 block text-sm font-medium text-gray-700"
             >
-              Email
+              Email*
             </label>
 
             <input
               id="email"
               name="email"
               type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              value={emailAddress}
+              onChange={(event) => setEmailAddress(event.target.value)}
               autoComplete="email"
-              required
               className="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               placeholder="you@example.com"
             />
@@ -49,7 +106,7 @@ export const Login = () => {
                 htmlFor="password"
                 className="block text-sm font-medium text-gray-700"
               >
-                Password
+                Password*
               </label>
 
               <a
@@ -67,7 +124,6 @@ export const Login = () => {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               autoComplete="current-password"
-              required
               className="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               placeholder="••••••••"
             />
@@ -75,9 +131,18 @@ export const Login = () => {
 
           <button
             type="submit"
-            className="w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            disabled={loading}
+            className="flex w-full items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 active:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Sign in
+            {loading && (
+              <span
+                className="size-5 animate-spin rounded-full border-2 border-white border-t-transparent"
+                role="status"
+                aria-label="Processing signin"
+              />
+            )}
+
+            {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
 
