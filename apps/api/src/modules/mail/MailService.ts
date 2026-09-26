@@ -15,6 +15,12 @@ export interface SendVerificationEmailParams {
   verificationLink: string;
 }
 
+export interface SendForgotPasswordParams {
+  to: string;
+  firstName: string;
+  resetLink: string;
+}
+
 interface SendSubscriptionSuccessful {
   email: string;
   lastName: string;
@@ -47,7 +53,7 @@ export class MailService {
     verificationLink,
   }: SendVerificationEmailParams): Promise<string> => {
     const from =
-      process.env.MAIL_FROM ?? "M-Pesa Checkout Flow <noreply@mail.loft.co.ke>";
+      process.env.MAIL_FROM ?? "Express Payflow <noreply@mail.loft.co.ke>";
 
     const { data, error } = await resend.emails.send({
       from,
@@ -67,11 +73,55 @@ export class MailService {
     return data.id;
   };
 
+  sendForgotPassword = async ({
+    to,
+    firstName,
+    resetLink,
+  }: SendForgotPasswordParams): Promise<string> => {
+    const from =
+      process.env.MAIL_FROM ?? "Express Payflow <noreply@mail.loft.co.ke>";
+
+    const { data, error } = await resend.emails.send({
+      from,
+      to: [to],
+      subject: "Forgot your password",
+      html: ` <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto;">
+          <h2>Verify your email address</h2>
+
+          <p>Hi ${firstName},</p>
+
+          <p>
+            Click the link below to reset your password.
+          </p>
+
+          <p>
+           <a href="${resetLink}">
+            Reset password
+           </a>
+          </p>
+
+          <p>
+            This link will expire in 30 minutes.
+          </p>
+        </div>`,
+    });
+
+    if (error) {
+      throw new Error(`Failed to send verification email: ${error.message}`);
+    }
+
+    if (!data?.id) {
+      throw new Error("Resend did not return an email ID");
+    }
+
+    return data.id;
+  };
+
   async sendSubscriptionSuccessfulEmail(params: SendSubscriptionSuccessful) {
     const { email, lastName, subscriptionId, planName, expiresAt, amount } =
       params;
     const from =
-      process.env.MAIL_FROM ?? "M-Pesa Checkout Flow <noreply@mail.loft.co.ke>";
+      process.env.MAIL_FROM ?? "Express Payflow <noreply@mail.loft.co.ke>";
 
     const { data, error } = await resend.emails.send({
       from,
@@ -113,7 +163,7 @@ export class MailService {
   async sendPaymentFailedEmail(params: SendPaymentFailedEmail) {
     const { lastName, email, paymentId, planName, amount } = params;
     const from =
-      process.env.MAIL_FROM ?? "M-Pesa Checkout Flow <noreply@mail.loft.co.ke>";
+      process.env.MAIL_FROM ?? "Express Payflow <noreply@mail.loft.co.ke>";
 
     const { data, error } = await resend.emails.send({
       from,
@@ -151,7 +201,7 @@ export class MailService {
   async sendSubscriptionCancelledEmail(params: SendSubscriptionCancelledEmail) {
     const { lastName, email, subscriptionId, planName, expiresAt } = params;
     const from =
-      process.env.MAIL_FROM ?? "M-Pesa Checkout Flow <noreply@mail.loft.co.ke>";
+      process.env.MAIL_FROM ?? "Express Payflow <noreply@mail.loft.co.ke>";
 
     const { data, error } = await resend.emails.send({
       from,
@@ -185,24 +235,24 @@ export class MailService {
 
   async sendWelcome(email: string, firstName: string) {
     const from =
-      process.env.MAIL_FROM ?? "M-Pesa Checkout Flow <noreply@mail.loft.co.ke>";
+      process.env.MAIL_FROM ?? "Express Payflow <noreply@mail.loft.co.ke>";
 
     const { data, error } = await resend.emails.send({
       from,
       to: email,
-      subject: "Welcome to M-Pesa Checkout Flow",
+      subject: "Welcome to Express Payflow",
       html: `
       <p>Hello ${firstName},</p>
 
       <p>
-        Welcome to M-Pesa Checkout Flows!
+        Welcome to Express Payflow!
       </p>
 
       <p>
        Your account has been successfully created. We're glad to have you with us.
       </p>
 
-      <p>M-Pesa Checkout Flow Team</p>
+      <p>Express Payflow Team</p>
     `,
     });
 
@@ -221,12 +271,12 @@ export class MailService {
 
   async sendAccountDataExport(email: string, firstName: string, pdf: any) {
     const from =
-      process.env.MAIL_FROM ?? "M-Pesa Checkout Flow <noreply@mail.loft.co.ke>";
+      process.env.MAIL_FROM ?? "Express Payflow <noreply@mail.loft.co.ke>";
 
     const { data, error } = await resend.emails.send({
       from,
       to: email,
-      subject: "Your M-Pesa Checkout Flow account data",
+      subject: "Your Express Payflow account data",
       html: `
       <p>Hello ${firstName},</p>
       <p>
@@ -263,7 +313,7 @@ export class MailService {
 
   async sendAccountDeleted(email: string, firstName: string) {
     const from =
-      process.env.MAIL_FROM ?? "M-Pesa Checkout Flow <noreply@mail.loft.co.ke>";
+      process.env.MAIL_FROM ?? "Express Payflow <noreply@mail.loft.co.ke>";
 
     const { data, error } = await resend.emails.send({
       from,
@@ -273,7 +323,7 @@ export class MailService {
       <p>Hello ${firstName},</p>
 
       <p>
-        Your M-Pesa Checkout Flow Technologies account has been successfully deleted.
+        Your Express Payflow Technologies account has been successfully deleted.
       </p>
 
       <p>
