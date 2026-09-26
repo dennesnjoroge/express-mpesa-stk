@@ -47,9 +47,7 @@ export const Login = () => {
           );
         } else if (err.request) {
           console.log(err.request);
-          setError(
-            "We are unable to connect to our services right now. Please check your internet connection and try again.",
-          );
+          setError("Network error. Please check your internet connection.");
         } else {
           setError(
             "Something went wrong while processing your request. Please try again in a few moments.",
