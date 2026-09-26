@@ -63,8 +63,6 @@ export class PaymentService {
         connection,
       );
 
-      console.log(plan);
-
       await paymentRepository.createPaymentRecord(
         {
           payment_id: paymentId,

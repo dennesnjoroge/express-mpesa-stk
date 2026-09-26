@@ -8,8 +8,6 @@ import { requireEnv } from "./access-token.js";
 export const stkPush = async (params: StkPushParams): Promise<RequestIds> => {
   const { amount, phoneNumber, accountReference } = params;
 
-  console.log(phoneNumber);
-
   const accessToken = await getAccessToken();
   const timestamp = dayjs().format("YYYYMMDDHHmmss");
 

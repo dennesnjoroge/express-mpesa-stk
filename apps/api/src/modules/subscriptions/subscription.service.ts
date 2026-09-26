@@ -53,7 +53,6 @@ export class SubscriptionService {
       planName: plan.name,
       expiresAt: subscription.expires_at,
     });
-    console.log(user);
   }
 }
 
