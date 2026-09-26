@@ -52,7 +52,7 @@ type AuthContextValue = {
   setActiveSubscription: React.Dispatch<
     React.SetStateAction<ActiveSubscription | null>
   >;
-  initiatePayment: (planId: number, phoneNumber: string) => Promise<void>;
+  deleteAccount: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -128,12 +128,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const initiatePayment = useCallback(
-    async (planId: number, phoneNumber: string) => {
-      await apiClient.post("/payments/stk-push", { planId, phoneNumber });
-    },
-    [],
-  );
+  const deleteAccount = useCallback(async () => {
+    try {
+      await apiClient.post("/auth/delete");
+    } finally {
+      setUser(null);
+      setActiveSubscription(null);
+      setIsLoading(false);
+    }
+  }, []);
 
   const value: AuthContextValue = {
     user,
@@ -147,7 +150,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     logout,
     refreshUser,
     getActiveSubscription,
-    initiatePayment,
+    deleteAccount,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
