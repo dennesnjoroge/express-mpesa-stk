@@ -15,7 +15,8 @@ interface UpdatePaymentRequestId {
   merchantRequestId: string;
 }
 
-const paymentColumns = `payment_id,
+const paymentColumns = `
+  bin_to_uuid(payment_id) AS payment_id,
   subscription_id,
   amount,
   method,
