@@ -213,3 +213,30 @@ export const verifyEmail = async (
     next(error);
   }
 };
+
+export const forgotPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const emailAddress = req.body?.emailAddress;
+
+    if (!emailAddress) {
+      throw ApiError.badRequest("Email address is required.");
+    }
+
+    if (!emailRegex.test(emailAddress)) {
+      throw ApiError.badRequest("Invalid email address.");
+    }
+
+    await authService.forgotPassword(emailAddress);
+
+    res.status(200).json({
+      message:
+        "If an account with this email exists. We have sent instructions to reset your password.",
+    });
+  } catch (error) {
+    next(error);
+  }
+};

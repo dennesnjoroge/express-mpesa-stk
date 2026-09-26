@@ -7,6 +7,7 @@ import {
   deleteUser,
   resendVerification,
   verifyEmail,
+  forgotPassword,
 } from "./auth.controller.js";
 import { authmiddleware } from "../../core/middlewares/auth.js";
 
@@ -19,3 +20,4 @@ authRoutes.post("/logout", authmiddleware, logout);
 authRoutes.post("/delete", authmiddleware, deleteUser);
 authRoutes.post("/resend-verification", resendVerification);
 authRoutes.post("/verify-email", verifyEmail);
+authRoutes.post("/forgot-password", forgotPassword);
