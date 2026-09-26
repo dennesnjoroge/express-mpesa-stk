@@ -45,7 +45,7 @@ type AuthContextValue = {
   isLoading: boolean;
   isSubscriptionLoading: boolean;
   login: (emailAddress: string, password: string) => Promise<AxiosResponse>;
-  register: (input: RegisterInput) => Promise<void>;
+  register: (input: RegisterInput) => Promise<AxiosResponse>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   getActiveSubscription: () => Promise<ActiveSubscription | null>;
@@ -113,7 +113,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 
   const register = useCallback(async (input: RegisterInput) => {
-    await apiClient.post("/auth/register", input);
+    const response = await apiClient.post("/auth/register", input);
+
+    return response;
   }, []);
 
   const logout = useCallback(async () => {
