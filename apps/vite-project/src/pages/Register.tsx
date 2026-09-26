@@ -2,6 +2,7 @@ import { type FormEvent, useState } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { Eye, EyeOff } from "lucide-react";
+import axios from "axios";
 
 export const Register = () => {
   const navigate = useNavigate();
@@ -19,20 +20,44 @@ export const Register = () => {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setLoading(true);
-    setError("");
+
+    if (!firstName) {
+      setError("First name is required.");
+      return;
+    }
+
+    if (!lastName) {
+      setError("Last name is required.");
+      return;
+    }
+
+    if (!emailAddress) {
+      setError("Email address is required.");
+      return;
+    }
+
+    if (!password) {
+      setError("Password is required.");
+      return;
+    }
+
+    if (!confirmPassword) {
+      setError("Confirm your password.");
+      return;
+    }
 
     if (password.length < 8) {
       setError("Password must be atleast 8 characters.");
-      setLoading(false);
       return;
     }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
-      setLoading(false);
       return;
     }
+
+    setLoading(true);
+    setError("");
 
     try {
       await register({
@@ -46,11 +71,23 @@ export const Register = () => {
         `/verification-email-sent?email=${encodeURIComponent(emailAddress)}`,
         { replace: true },
       );
-    } catch (err) {
-      console.error(err);
-      setError(
-        "Unable to create account. Please check the form and try again.",
-      );
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          const { data } = error.response;
+          setError(data.message);
+        } else if (error.request) {
+          setError("Network error. Please check your internet connection.");
+        } else {
+          setError(
+            "Something went wrong while processing your request. Please try again in a few moments.",
+          );
+        }
+      } else {
+        setError(
+          "Something went wrong while processing your request. Please try again in a few moments.",
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -90,7 +127,6 @@ export const Register = () => {
                 value={firstName}
                 onChange={(event) => setFirstName(event.target.value)}
                 autoComplete="given-name"
-                required
                 maxLength={100}
                 className="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 placeholder="John"
@@ -112,7 +148,6 @@ export const Register = () => {
                 value={lastName}
                 onChange={(event) => setLastName(event.target.value)}
                 autoComplete="family-name"
-                required
                 maxLength={100}
                 className="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 placeholder="Doe"
@@ -135,7 +170,6 @@ export const Register = () => {
               value={emailAddress}
               onChange={(event) => setEmailAddress(event.target.value)}
               autoComplete="email"
-              required
               maxLength={50}
               className="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               placeholder="you@example.com"
@@ -158,7 +192,6 @@ export const Register = () => {
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 autoComplete="new-password"
-                required
                 className="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 placeholder="••••••••"
               />
@@ -191,7 +224,6 @@ export const Register = () => {
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
                 autoComplete="new-password"
-                required
                 className="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 placeholder="••••••••"
               />

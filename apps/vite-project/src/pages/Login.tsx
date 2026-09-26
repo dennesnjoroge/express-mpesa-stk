@@ -46,7 +46,6 @@ export const Login = () => {
               "Something went wrong while processing your request. Please try again in a few moments.",
           );
         } else if (err.request) {
-          console.log(err.request);
           setError("Network error. Please check your internet connection.");
         } else {
           setError(
