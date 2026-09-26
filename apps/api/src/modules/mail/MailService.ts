@@ -230,7 +230,7 @@ export class MailService {
     const { data, error } = await resend.emails.send({
       from,
       to: email,
-      subject: "Subscription cancelled",
+      subject: "Your Loft account data",
       html: `
       <p>Hello ${firstName},</p>
       <p>

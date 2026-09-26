@@ -12,6 +12,7 @@ export const Home = () => {
     activeSubscription,
     setActiveSubscription,
     isSubscriptionLoading,
+    deleteAccount,
   } = useAuth();
 
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
@@ -43,14 +44,13 @@ export const Home = () => {
     setDeleting(true);
 
     try {
-      console.log("Deleting account...");
-
-      // await api.delete("/account");
+      await deleteAccount();
 
       toast.success("Account deleted.");
 
       navigate("/login", { replace: true });
     } catch (error) {
+      toast.error("Failed to delete account.");
       console.error("Failed to delete account:", error);
     } finally {
       setDeleting(false);
