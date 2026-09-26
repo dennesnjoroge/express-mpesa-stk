@@ -100,8 +100,6 @@ export class AuthService {
       throw ApiError.badRequest("Invalid email address or password.");
     }
 
-    /*
-    // turn off during debug
     if (existingUser.status === "PENDING_VERIFICATION") {
       // check for existing verification token(email) by user id
       const userVerificationToken =
@@ -149,7 +147,7 @@ export class AuthService {
       throw ApiError.unauthorized(
         "Email not verified. A new verification link has been sent to your inbox.",
       );
-    }*/
+    }
 
     // compare passwords
     const isPasswordValid = await argon2.verify(
@@ -269,7 +267,6 @@ export class AuthService {
     const user = await authRepository.getByEmailAddressNotVerified(email);
 
     if (!user) {
-      //console.log("user not found"); //debug
       return;
     }
 
@@ -300,5 +297,62 @@ export class AuthService {
       firstName: user.first_name,
       verificationLink,
     });
+  }
+
+  async verifyEmail(token: string, ref: string) {
+    // get token by id(not expired)
+    const verificationToken =
+      await authRepository.getVerificationTokenById(ref);
+
+    if (!verificationToken) {
+      throw ApiError.badRequest(
+        "This verification link is invalid or has expired.",
+      );
+    }
+
+    const user = await authRepository.getByUserId(verificationToken.user_id);
+
+    if (!user) {
+      throw ApiError.badRequest(
+        "This verification link is invalid or has expired.",
+      );
+    }
+
+    // hash and compare
+    const incomingVerificationTokenHash = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("base64url");
+
+    if (incomingVerificationTokenHash !== verificationToken.token_hash) {
+      throw ApiError.badRequest(
+        "This verification link is invalid or has expired.",
+      );
+    }
+
+    const connection = await pool.getConnection();
+
+    try {
+      await connection.beginTransaction();
+      // update user verification status
+      await authRepository.markUserAsVerified(
+        verificationToken.user_id,
+        connection,
+      );
+
+      await authRepository.markVerificationTokenAsUsed(
+        verificationToken.id,
+        connection,
+      );
+
+      await connection.commit();
+
+      mailService.sendWelcome(user.email_address, user.first_name);
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
   }
 }
