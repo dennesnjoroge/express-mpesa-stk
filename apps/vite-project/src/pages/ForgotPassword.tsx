@@ -1,14 +1,69 @@
 import { type FormEvent, useState } from "react";
+import apiClient from "../config/apiClient";
+import axios from "axios";
 
 export const ForgotPassword = () => {
   const [emailAddress, setEmailAddress] = useState("");
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    console.log({
-      email_address: emailAddress,
-    });
+    if (!emailAddress) {
+      setSuccess("");
+      setError("Email address is required.");
+      return;
+    }
+
+    if (!emailRegex.test(emailAddress)) {
+      setSuccess("");
+      setError("Invalid email address.");
+      return;
+    }
+
+    setLoading(true);
+    setSuccess("");
+    setError("");
+
+    try {
+      const { data } = await apiClient.post("/auth/forgot-password", {
+        emailAddress,
+      });
+
+      setSuccess(
+        data.message ||
+          "Password reset instructions has been sent to your email.",
+      );
+
+      setEmailAddress("");
+    } catch (error) {
+      setSuccess("");
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          const { data } = error.response;
+          setError(
+            data.message ||
+              "Something went wrong while processing your request. Please try again in a few moments.",
+          );
+        } else if (error.request) {
+          setError("Network error. Please check your internet connection.");
+        } else {
+          setError(
+            "Something went wrong while processing your request. Please try again in a few moments.",
+          );
+        }
+      } else {
+        setError(
+          "Something went wrong while processing your request. Please try again in a few moments.",
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -26,6 +81,17 @@ export const ForgotPassword = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          {success && (
+            <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+              {success}
+            </div>
+          )}
+
+          {error && (
+            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {error}
+            </div>
+          )}
           <div>
             <label
               htmlFor="email_address"
@@ -41,7 +107,6 @@ export const ForgotPassword = () => {
               value={emailAddress}
               onChange={(event) => setEmailAddress(event.target.value)}
               autoComplete="email"
-              required
               maxLength={50}
               className="w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               placeholder="you@example.com"
@@ -50,9 +115,10 @@ export const ForgotPassword = () => {
 
           <button
             type="submit"
-            className="w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            disabled={loading}
+            className="w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 active:bg-blue-800"
           >
-            Send reset link
+            {loading ? "Sending..." : "Send reset link"}
           </button>
         </form>
 
