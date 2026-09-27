@@ -52,8 +52,7 @@ export class MailService {
     firstName,
     verificationLink,
   }: SendVerificationEmailParams): Promise<string> => {
-    const from =
-      process.env.MAIL_FROM ?? "Express Payflow <noreply@mail.loft.co.ke>";
+    const from = process.env.MAIL_FROM ?? "Payflow <noreply@mail.loft.co.ke>";
 
     const { data, error } = await resend.emails.send({
       from,
@@ -78,8 +77,7 @@ export class MailService {
     firstName,
     resetLink,
   }: SendForgotPasswordParams): Promise<string> => {
-    const from =
-      process.env.MAIL_FROM ?? "Express Payflow <noreply@mail.loft.co.ke>";
+    const from = process.env.MAIL_FROM ?? "Payflow <noreply@mail.loft.co.ke>";
 
     const { data, error } = await resend.emails.send({
       from,
@@ -120,8 +118,7 @@ export class MailService {
   async sendSubscriptionSuccessfulEmail(params: SendSubscriptionSuccessful) {
     const { email, lastName, subscriptionId, planName, expiresAt, amount } =
       params;
-    const from =
-      process.env.MAIL_FROM ?? "Express Payflow <noreply@mail.loft.co.ke>";
+    const from = process.env.MAIL_FROM ?? "Payflow <noreply@mail.loft.co.ke>";
 
     const { data, error } = await resend.emails.send({
       from,
@@ -162,8 +159,7 @@ export class MailService {
 
   async sendPaymentFailedEmail(params: SendPaymentFailedEmail) {
     const { lastName, email, paymentId, planName, amount } = params;
-    const from =
-      process.env.MAIL_FROM ?? "Express Payflow <noreply@mail.loft.co.ke>";
+    const from = process.env.MAIL_FROM ?? "Payflow <noreply@mail.loft.co.ke>";
 
     const { data, error } = await resend.emails.send({
       from,
@@ -200,8 +196,7 @@ export class MailService {
 
   async sendSubscriptionCancelledEmail(params: SendSubscriptionCancelledEmail) {
     const { lastName, email, subscriptionId, planName, expiresAt } = params;
-    const from =
-      process.env.MAIL_FROM ?? "Express Payflow <noreply@mail.loft.co.ke>";
+    const from = process.env.MAIL_FROM ?? "Payflow <noreply@mail.loft.co.ke>";
 
     const { data, error } = await resend.emails.send({
       from,
@@ -234,25 +229,24 @@ export class MailService {
   }
 
   async sendWelcome(email: string, firstName: string) {
-    const from =
-      process.env.MAIL_FROM ?? "Express Payflow <noreply@mail.loft.co.ke>";
+    const from = process.env.MAIL_FROM ?? "Payflow <noreply@mail.loft.co.ke>";
 
     const { data, error } = await resend.emails.send({
       from,
       to: email,
-      subject: "Welcome to Express Payflow",
+      subject: "Welcome to Payflow",
       html: `
       <p>Hello ${firstName},</p>
 
       <p>
-        Welcome to Express Payflow!
+        Welcome to Payflow!
       </p>
 
       <p>
        Your account has been successfully created. We're glad to have you with us.
       </p>
 
-      <p>Express Payflow Team</p>
+      <p>Payflow Team</p>
     `,
     });
 
@@ -270,13 +264,12 @@ export class MailService {
   }
 
   async sendAccountDataExport(email: string, firstName: string, pdf: any) {
-    const from =
-      process.env.MAIL_FROM ?? "Express Payflow <noreply@mail.loft.co.ke>";
+    const from = process.env.MAIL_FROM ?? "Payflow <noreply@mail.loft.co.ke>";
 
     const { data, error } = await resend.emails.send({
       from,
       to: email,
-      subject: "Your Express Payflow account data",
+      subject: "Your Payflow account data",
       html: `
       <p>Hello ${firstName},</p>
       <p>
@@ -312,8 +305,7 @@ export class MailService {
   }
 
   async sendAccountDeleted(email: string, firstName: string) {
-    const from =
-      process.env.MAIL_FROM ?? "Express Payflow <noreply@mail.loft.co.ke>";
+    const from = process.env.MAIL_FROM ?? "Payflow <noreply@mail.loft.co.ke>";
 
     const { data, error } = await resend.emails.send({
       from,
@@ -323,7 +315,7 @@ export class MailService {
       <p>Hello ${firstName},</p>
 
       <p>
-        Your Express Payflow Technologies account has been successfully deleted.
+        Your Payflow Technologies account has been successfully deleted.
       </p>
 
       <p>
