@@ -93,6 +93,17 @@ export class AuthRepository {
     return rows[0] ?? null;
   }
 
+  async updatePassword(
+    passwordHash: string,
+    userId: string,
+    connection: PoolConnection,
+  ): Promise<void> {
+    await connection.execute(
+      `UPDATE users SET password_hash = ? WHERE id = UUID_TO_BIN(?)`,
+      [passwordHash, userId],
+    );
+  }
+
   async getByEmailAddressNotVerified(
     emailAddress: string,
   ): Promise<User | null> {
@@ -211,8 +222,11 @@ export class AuthRepository {
     return rows[0] ?? null;
   };
 
-  markPasswordResetTokenAsUsed = async (id: bigint): Promise<void> => {
-    await pool.execute(
+  markPasswordResetTokenAsUsed = async (
+    id: bigint,
+    connection: PoolConnection,
+  ): Promise<void> => {
+    await connection.execute(
       `UPDATE password_reset_tokens
      SET used_at = NOW()
      WHERE id = ?
