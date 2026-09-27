@@ -39,3 +39,11 @@ export const createVerificationLink = ({
 
   return url.toString();
 };
+
+export const createPasswordResetLink = (token: string): string => {
+  const url = new URL("/reset-password", ACCOUNTS_URL);
+
+  url.searchParams.set("token", token);
+
+  return url.toString();
+};
