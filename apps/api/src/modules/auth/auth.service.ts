@@ -5,7 +5,7 @@ import argon2 from "argon2";
 import { randomUUID } from "node:crypto";
 import crypto from "node:crypto";
 import { MailService } from "../mail/MailService.js";
-import { createVerificationLink } from "./utils.js";
+import { createPasswordResetLink, createVerificationLink } from "./utils.js";
 import type { LoginParams, RegisterParams } from "./types.js";
 import jwt from "jsonwebtoken";
 import { SubscriptionRepository } from "../subscriptions/subscription.repository.js";
@@ -354,5 +354,36 @@ export class AuthService {
     } finally {
       connection.release();
     }
+  }
+
+  async forgotPassword(emailAddress: string) {
+    const user = await authRepository.getByEmailAddress(emailAddress);
+
+    if (!user) {
+      return;
+    }
+
+    const token = crypto.randomBytes(32).toString("base64url");
+
+    const tokenHash = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("base64url");
+
+    const passwordResetTokenExpiresAt = new Date(Date.now() + 30 * 60 * 1000);
+
+    await authRepository.createPasswordResetToken({
+      user_id: user.id,
+      token_hash: tokenHash,
+      expires_at: passwordResetTokenExpiresAt,
+    });
+
+    const passwordResetLink = createPasswordResetLink(token);
+
+    mailService.sendForgotPassword({
+      to: user.email_address,
+      firstName: user.first_name,
+      resetLink: passwordResetLink,
+    });
   }
 }
