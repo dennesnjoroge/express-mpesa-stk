@@ -248,12 +248,17 @@ export const resetPassword = async (
 ) => {
   try {
     const token = req.body?.token;
+    const password = req.body?.password;
 
     if (!token || typeof token !== "string") {
       throw ApiError.badRequest("Invalid password reset link.");
     }
 
-    await authService.resetPassword(token);
+    if (!password || typeof password !== "string") {
+      throw ApiError.badRequest("New password is required.");
+    }
+
+    await authService.resetPassword(token, password);
 
     return res.status(200).json({ message: "Your password has been reset." });
   } catch (error) {
