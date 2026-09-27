@@ -50,3 +50,18 @@ export interface RegisterParams {
   emailAddress: string;
   password: string;
 }
+
+export interface CreatePasswordResetTokenParams {
+  user_id: string;
+  token_hash: string;
+  expires_at: Date;
+}
+
+export interface PasswordResetToken extends RowDataPacket {
+  id: bigint;
+  user_id: string;
+  token_hash: string;
+  expires_at: Date;
+  used_at: Date | null;
+  created_at: Date;
+}
