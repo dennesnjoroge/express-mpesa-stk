@@ -5,6 +5,8 @@ import type {
   CreateUserParams,
   EmailVerificationToken,
   CreateVerificationTokenParams,
+  CreatePasswordResetTokenParams,
+  PasswordResetToken,
 } from "./types.js";
 
 const USER_COLUMNS = `
@@ -171,5 +173,51 @@ export class AuthRepository {
 
   deleteUser = async (userId: string): Promise<void> => {
     await pool.execute(`DELETE FROM users WHERE id = UUID_TO_BIN(?)`, [userId]);
+  };
+
+  createPasswordResetToken = async (
+    params: CreatePasswordResetTokenParams,
+    connection: Pool | PoolConnection = pool,
+  ): Promise<void> => {
+    const { user_id, token_hash, expires_at } = params;
+
+    await connection.execute(
+      `INSERT INTO password_reset_tokens
+      (user_id, token_hash, expires_at)
+     VALUES (UUID_TO_BIN(?), ?, ?)`,
+      [user_id, token_hash, expires_at],
+    );
+  };
+
+  getPasswordResetTokenByHash = async (
+    tokenHash: string,
+  ): Promise<PasswordResetToken | null> => {
+    const [rows] = await pool.execute<PasswordResetToken[]>(
+      `SELECT
+       id,
+       BIN_TO_UUID(user_id) AS user_id,
+       token_hash,
+       expires_at,
+       used_at,
+       created_at
+     FROM password_reset_tokens
+     WHERE token_hash = ?
+       AND used_at IS NULL
+       AND expires_at > NOW()
+     LIMIT 1`,
+      [tokenHash],
+    );
+
+    return rows[0] ?? null;
+  };
+
+  markPasswordResetTokenAsUsed = async (id: bigint): Promise<void> => {
+    await pool.execute(
+      `UPDATE password_reset_tokens
+     SET used_at = NOW()
+     WHERE id = ?
+       AND used_at IS NULL`,
+      [id],
+    );
   };
 }
