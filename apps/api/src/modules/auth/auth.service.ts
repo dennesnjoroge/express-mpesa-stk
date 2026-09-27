@@ -386,4 +386,48 @@ export class AuthService {
       resetLink: passwordResetLink,
     });
   }
+
+  async resetPassword(token: string, password: string) {
+    //hash token
+    const tokenHash = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("base64url");
+
+    //find by hash
+    const tokenData =
+      await authRepository.getPasswordResetTokenByHash(tokenHash);
+
+    if (!tokenData) {
+      throw ApiError.badRequest("Invalid or expired reset link.");
+    }
+
+    const user = await authRepository.getById(tokenData.user_id);
+
+    if (!user) {
+      throw ApiError.badRequest("Invalid or expired reset link.");
+    }
+
+    // hash password
+    const passwordHash = await argon2.hash(password);
+
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+      await authRepository.updatePassword(passwordHash, user.id, connection);
+      await authRepository.markPasswordResetTokenAsUsed(
+        tokenData.id,
+        connection,
+      );
+      await connection.commit();
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+    //update password // requires tx
+    //mark token as used // requires tx
+    // send alert
+  }
 }
