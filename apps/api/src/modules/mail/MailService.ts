@@ -84,7 +84,7 @@ export class MailService {
       to: [to],
       subject: "Forgot your password",
       html: ` <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto;">
-          <h2>Verify your email address</h2>
+          <h2>Your password reset link</h2>
 
           <p>Hi ${firstName},</p>
 
