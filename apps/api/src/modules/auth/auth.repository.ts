@@ -133,19 +133,19 @@ export class AuthRepository {
 
     await connection.execute<ResultSetHeader>(
       `
-    INSERT INTO email_verification_tokens (
-      id,
-      user_id,
-      token_hash,
-      expires_at
-    )
-    VALUES (UUID_TO_BIN(?), UUID_TO_BIN(?), ?, ?)
-    AS new
-    ON DUPLICATE KEY UPDATE
-      id = new.id,
-      token_hash = new.token_hash,
-      expires_at = new.expires_at
-  `,
+      INSERT INTO email_verification_tokens (
+        id,
+        user_id,
+        token_hash,
+        expires_at
+      )
+      VALUES (UUID_TO_BIN(?), UUID_TO_BIN(?), ?, ?)
+      ON DUPLICATE KEY UPDATE
+        id = VALUES(id),
+        token_hash = VALUES(token_hash),
+        expires_at = VALUES(expires_at),
+        used_at = NULL
+    `,
       [id, user_id, token_hash, expires_at],
     );
   };
